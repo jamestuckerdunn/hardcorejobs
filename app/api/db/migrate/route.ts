@@ -168,6 +168,17 @@ export async function POST(request: Request) {
       )
     `;
 
+    // Add job aggregator filter columns if they don't exist
+    await sql`
+      DO $$ BEGIN
+        ALTER TABLE jobs ADD COLUMN IF NOT EXISTS confidence_score REAL DEFAULT 0;
+        ALTER TABLE jobs ADD COLUMN IF NOT EXISTS meets_salary BOOLEAN DEFAULT false;
+        ALTER TABLE jobs ADD COLUMN IF NOT EXISTS no_experience BOOLEAN DEFAULT false;
+        ALTER TABLE jobs ADD COLUMN IF NOT EXISTS no_degree BOOLEAN DEFAULT false;
+      EXCEPTION WHEN duplicate_column THEN NULL;
+      END $$;
+    `;
+
     // Create indexes
     await sql`CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_jobs_salary ON jobs(salary_min, salary_max)`;
@@ -176,6 +187,7 @@ export async function POST(request: Request) {
     await sql`CREATE INDEX IF NOT EXISTS idx_jobs_source ON jobs(source)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_job_seeker_visibility ON job_seeker_profiles(visibility)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_users_clerk_id ON users(clerk_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_jobs_filter ON jobs(meets_salary, no_experience, no_degree)`;
 
     return NextResponse.json({ success: true, message: "Migrations completed" });
   } catch (error) {

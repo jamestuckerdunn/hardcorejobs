@@ -8,86 +8,185 @@ export async function GET(request: Request) {
 
     // Parse query parameters
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 100);
     const search = searchParams.get("search") || "";
     const location = searchParams.get("location") || "";
     const remoteType = searchParams.get("remote_type") || "";
-    const salaryMin = searchParams.get("salary_min") || "";
+    const salaryMin = parseInt(searchParams.get("salary_min") || "0");
     const featured = searchParams.get("featured") === "true";
     const sortBy = searchParams.get("sort") || "recent";
 
     const offset = (page - 1) * limit;
 
-    // Build the query dynamically based on filters
-    let whereConditions: string[] = ["status = 'active'"];
+    // Use parameterized queries for safety
+    const searchPattern = search ? `%${search}%` : "%";
+    const locationPattern = location ? `%${location}%` : "%";
 
-    if (search) {
-      whereConditions.push(`(title ILIKE '%${search}%' OR company_name ILIKE '%${search}%' OR description ILIKE '%${search}%')`);
-    }
-
-    if (location) {
-      whereConditions.push(`location ILIKE '%${location}%'`);
-    }
-
-    if (remoteType) {
-      whereConditions.push(`remote_type = '${remoteType}'`);
-    }
-
-    if (salaryMin) {
-      whereConditions.push(`salary_min >= ${parseInt(salaryMin)}`);
-    }
+    // Build query based on filters
+    let jobs;
+    let countResult;
 
     if (featured) {
-      whereConditions.push(`is_featured = true AND (featured_until IS NULL OR featured_until > NOW())`);
+      // Featured jobs query
+      if (remoteType) {
+        countResult = await sql`
+          SELECT COUNT(*) as total FROM jobs
+          WHERE status = 'active'
+            AND is_featured = true
+            AND (featured_until IS NULL OR featured_until > NOW())
+            AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
+            AND location ILIKE ${locationPattern}
+            AND remote_type = ${remoteType}
+            AND (salary_min IS NULL OR salary_min >= ${salaryMin})
+        `;
+        jobs = await sql`
+          SELECT id, title, company_name, company_logo_url, location, remote_type,
+                 salary_min, salary_max, salary_currency, description, apply_url,
+                 is_featured, featured_until, posted_at, source
+          FROM jobs
+          WHERE status = 'active'
+            AND is_featured = true
+            AND (featured_until IS NULL OR featured_until > NOW())
+            AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
+            AND location ILIKE ${locationPattern}
+            AND remote_type = ${remoteType}
+            AND (salary_min IS NULL OR salary_min >= ${salaryMin})
+          ORDER BY posted_at DESC
+          LIMIT ${limit} OFFSET ${offset}
+        `;
+      } else {
+        countResult = await sql`
+          SELECT COUNT(*) as total FROM jobs
+          WHERE status = 'active'
+            AND is_featured = true
+            AND (featured_until IS NULL OR featured_until > NOW())
+            AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
+            AND location ILIKE ${locationPattern}
+            AND (salary_min IS NULL OR salary_min >= ${salaryMin})
+        `;
+        jobs = await sql`
+          SELECT id, title, company_name, company_logo_url, location, remote_type,
+                 salary_min, salary_max, salary_currency, description, apply_url,
+                 is_featured, featured_until, posted_at, source
+          FROM jobs
+          WHERE status = 'active'
+            AND is_featured = true
+            AND (featured_until IS NULL OR featured_until > NOW())
+            AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
+            AND location ILIKE ${locationPattern}
+            AND (salary_min IS NULL OR salary_min >= ${salaryMin})
+          ORDER BY posted_at DESC
+          LIMIT ${limit} OFFSET ${offset}
+        `;
+      }
+    } else {
+      // Regular jobs query
+      if (remoteType) {
+        countResult = await sql`
+          SELECT COUNT(*) as total FROM jobs
+          WHERE status = 'active'
+            AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
+            AND location ILIKE ${locationPattern}
+            AND remote_type = ${remoteType}
+            AND (salary_min IS NULL OR salary_min >= ${salaryMin})
+        `;
+
+        // Different sort orders
+        if (sortBy === "salary-high") {
+          jobs = await sql`
+            SELECT id, title, company_name, company_logo_url, location, remote_type,
+                   salary_min, salary_max, salary_currency, description, apply_url,
+                   is_featured, featured_until, posted_at, source
+            FROM jobs
+            WHERE status = 'active'
+              AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
+              AND location ILIKE ${locationPattern}
+              AND remote_type = ${remoteType}
+              AND (salary_min IS NULL OR salary_min >= ${salaryMin})
+            ORDER BY salary_max DESC NULLS LAST
+            LIMIT ${limit} OFFSET ${offset}
+          `;
+        } else if (sortBy === "salary-low") {
+          jobs = await sql`
+            SELECT id, title, company_name, company_logo_url, location, remote_type,
+                   salary_min, salary_max, salary_currency, description, apply_url,
+                   is_featured, featured_until, posted_at, source
+            FROM jobs
+            WHERE status = 'active'
+              AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
+              AND location ILIKE ${locationPattern}
+              AND remote_type = ${remoteType}
+              AND (salary_min IS NULL OR salary_min >= ${salaryMin})
+            ORDER BY salary_min ASC NULLS LAST
+            LIMIT ${limit} OFFSET ${offset}
+          `;
+        } else {
+          jobs = await sql`
+            SELECT id, title, company_name, company_logo_url, location, remote_type,
+                   salary_min, salary_max, salary_currency, description, apply_url,
+                   is_featured, featured_until, posted_at, source
+            FROM jobs
+            WHERE status = 'active'
+              AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
+              AND location ILIKE ${locationPattern}
+              AND remote_type = ${remoteType}
+              AND (salary_min IS NULL OR salary_min >= ${salaryMin})
+            ORDER BY is_featured DESC, posted_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+          `;
+        }
+      } else {
+        countResult = await sql`
+          SELECT COUNT(*) as total FROM jobs
+          WHERE status = 'active'
+            AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
+            AND location ILIKE ${locationPattern}
+            AND (salary_min IS NULL OR salary_min >= ${salaryMin})
+        `;
+
+        // Different sort orders
+        if (sortBy === "salary-high") {
+          jobs = await sql`
+            SELECT id, title, company_name, company_logo_url, location, remote_type,
+                   salary_min, salary_max, salary_currency, description, apply_url,
+                   is_featured, featured_until, posted_at, source
+            FROM jobs
+            WHERE status = 'active'
+              AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
+              AND location ILIKE ${locationPattern}
+              AND (salary_min IS NULL OR salary_min >= ${salaryMin})
+            ORDER BY salary_max DESC NULLS LAST
+            LIMIT ${limit} OFFSET ${offset}
+          `;
+        } else if (sortBy === "salary-low") {
+          jobs = await sql`
+            SELECT id, title, company_name, company_logo_url, location, remote_type,
+                   salary_min, salary_max, salary_currency, description, apply_url,
+                   is_featured, featured_until, posted_at, source
+            FROM jobs
+            WHERE status = 'active'
+              AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
+              AND location ILIKE ${locationPattern}
+              AND (salary_min IS NULL OR salary_min >= ${salaryMin})
+            ORDER BY salary_min ASC NULLS LAST
+            LIMIT ${limit} OFFSET ${offset}
+          `;
+        } else {
+          jobs = await sql`
+            SELECT id, title, company_name, company_logo_url, location, remote_type,
+                   salary_min, salary_max, salary_currency, description, apply_url,
+                   is_featured, featured_until, posted_at, source
+            FROM jobs
+            WHERE status = 'active'
+              AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
+              AND location ILIKE ${locationPattern}
+              AND (salary_min IS NULL OR salary_min >= ${salaryMin})
+            ORDER BY is_featured DESC, posted_at DESC
+            LIMIT ${limit} OFFSET ${offset}
+          `;
+        }
+      }
     }
-
-    // Determine sort order
-    let orderBy = "posted_at DESC";
-    switch (sortBy) {
-      case "salary-high":
-        orderBy = "salary_max DESC NULLS LAST";
-        break;
-      case "salary-low":
-        orderBy = "salary_min ASC NULLS LAST";
-        break;
-      case "featured":
-        orderBy = "is_featured DESC, posted_at DESC";
-        break;
-    }
-
-    const whereClause = whereConditions.join(" AND ");
-
-    // Get total count
-    const countResult = await sql`
-      SELECT COUNT(*) as total
-      FROM jobs
-      WHERE ${sql.raw(whereClause)}
-    `;
-
-    // Get paginated results
-    const jobs = await sql`
-      SELECT
-        id,
-        title,
-        company_name,
-        company_logo_url,
-        location,
-        remote_type,
-        salary_min,
-        salary_max,
-        salary_currency,
-        description,
-        apply_url,
-        is_featured,
-        featured_until,
-        posted_at,
-        source
-      FROM jobs
-      WHERE ${sql.raw(whereClause)}
-      ORDER BY ${sql.raw(orderBy)}
-      LIMIT ${limit}
-      OFFSET ${offset}
-    `;
 
     const total = parseInt(countResult[0]?.total || "0");
     const totalPages = Math.ceil(total / limit);
