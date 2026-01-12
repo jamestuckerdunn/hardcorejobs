@@ -3,7 +3,6 @@ import { z } from "zod";
 // Common validation patterns
 const uuidSchema = z.string().uuid();
 const urlSchema = z.string().url();
-const emailSchema = z.string().email();
 
 // Jobs API validation
 export const jobsQuerySchema = z.object({

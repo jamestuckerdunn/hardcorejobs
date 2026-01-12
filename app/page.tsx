@@ -5,65 +5,90 @@ import {
   GraduationCap,
   Briefcase,
   MapPin,
-  Clock,
-  Users,
   Target,
   Zap,
   Shield,
   TrendingUp,
-  Award,
   ChevronRight,
   Star,
   Building2,
   Globe,
   CheckCircle2,
-  Play,
 } from "lucide-react";
 
-// Sample featured jobs for preview
-const featuredJobs = [
-  {
-    id: "1",
-    title: "Sales Development Representative",
-    company: "TechFlow Inc",
-    location: "Remote",
-    salary: "$120K - $150K",
-    type: "remote" as const,
-    featured: true,
-  },
-  {
-    id: "2",
-    title: "Field Service Technician",
-    company: "PowerGrid Systems",
-    location: "Austin, TX",
-    salary: "$110K - $140K",
-    type: "onsite" as const,
-    featured: true,
-  },
-  {
-    id: "3",
-    title: "Insurance Sales Agent",
-    company: "SecureLife",
-    location: "Hybrid",
-    salary: "$100K - $200K",
-    type: "hybrid" as const,
-    featured: false,
-  },
-];
+interface FeaturedJob {
+  id: string;
+  title: string;
+  company_name: string;
+  location: string;
+  salary_min?: number;
+  salary_max?: number;
+  remote_type: "remote" | "hybrid" | "onsite";
+  is_featured: boolean;
+}
 
-// Companies that hire
-const companies = [
-  "Salesforce",
-  "Oracle",
-  "ServiceNow",
-  "Workday",
-  "Tesla",
-  "SpaceX",
-  "Palantir",
-  "Stripe",
-];
+async function getFeaturedJobs(): Promise<FeaturedJob[]> {
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const response = await fetch(`${baseUrl}/api/jobs?featured=true&limit=3`, {
+      next: { revalidate: 300 }, // Cache for 5 minutes
+    });
 
-export default function Home() {
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = await response.json();
+    return data.jobs || [];
+  } catch {
+    return [];
+  }
+}
+
+function formatSalary(min?: number, max?: number): string {
+  if (!min && !max) return "Competitive";
+  if (min && max) return `$${Math.round(min / 1000)}K - $${Math.round(max / 1000)}K`;
+  if (min) return `$${Math.round(min / 1000)}K+`;
+  return `Up to $${Math.round((max || 0) / 1000)}K`;
+}
+
+export default async function Home() {
+  const featuredJobs = await getFeaturedJobs();
+
+  // Fallback jobs if none in database yet
+  const displayJobs = featuredJobs.length > 0 ? featuredJobs : [
+    {
+      id: "demo-1",
+      title: "Sales Development Representative",
+      company_name: "TechFlow Inc",
+      location: "Remote",
+      salary_min: 120000,
+      salary_max: 150000,
+      remote_type: "remote" as const,
+      is_featured: true,
+    },
+    {
+      id: "demo-2",
+      title: "Field Service Technician",
+      company_name: "PowerGrid Systems",
+      location: "Austin, TX",
+      salary_min: 110000,
+      salary_max: 140000,
+      remote_type: "onsite" as const,
+      is_featured: true,
+    },
+    {
+      id: "demo-3",
+      title: "Insurance Sales Agent",
+      company_name: "SecureLife",
+      location: "Chicago, IL",
+      salary_min: 100000,
+      salary_max: 200000,
+      remote_type: "hybrid" as const,
+      is_featured: false,
+    },
+  ];
+
   return (
     <div className="bg-black">
       {/* Hero Section */}
@@ -82,8 +107,8 @@ export default function Home() {
           <div className="mx-auto max-w-4xl text-center">
             {/* Badge */}
             <div className="mb-8 inline-flex items-center gap-2 border border-neutral-800 bg-neutral-900/50 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-neutral-400 animate-fade-down">
-              <Zap className="h-3 w-3 text-amber-500" />
-              500+ Jobs Available Now
+              <Zap className="h-3 w-3 text-amber-500" aria-hidden="true" />
+              <span>500+ Jobs Available Now</span>
             </div>
 
             {/* Main headline */}
@@ -107,7 +132,7 @@ export default function Home() {
                 className="group btn btn-primary w-full px-8 py-4 text-base sm:w-auto"
               >
                 Browse All Jobs
-                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
               </Link>
               <Link
                 href="/sign-up"
@@ -120,38 +145,17 @@ export default function Home() {
             {/* Trust indicators */}
             <div className="mt-12 flex flex-wrap items-center justify-center gap-8 text-sm text-neutral-500 animate-fade-up delay-500">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" aria-hidden="true" />
                 <span>No degree required</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" aria-hidden="true" />
                 <span>Entry-level friendly</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                <CheckCircle2 className="h-4 w-4 text-emerald-500" aria-hidden="true" />
                 <span>$100K+ salaries only</span>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Companies Hiring Bar */}
-      <section className="border-b border-neutral-800 bg-neutral-950 py-6 overflow-hidden">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-8">
-            <span className="shrink-0 text-xs font-semibold uppercase tracking-wider text-neutral-600">
-              Companies Hiring:
-            </span>
-            <div className="flex gap-8 overflow-hidden">
-              {companies.map((company) => (
-                <span
-                  key={company}
-                  className="shrink-0 text-sm font-medium text-neutral-500 hover:text-white transition-colors cursor-default"
-                >
-                  {company}
-                </span>
-              ))}
             </div>
           </div>
         </div>
@@ -174,43 +178,44 @@ export default function Home() {
               className="hidden sm:flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-white hover:text-neutral-300 transition-colors"
             >
               View All Jobs
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {featuredJobs.map((job, i) => (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" role="list" aria-label="Featured job listings">
+            {displayJobs.map((job, i) => (
               <Link
                 key={job.id}
                 href={`/jobs/${job.id}`}
                 className={`group card card-lift p-6 ${
-                  job.featured ? "border-amber-900/50 bg-amber-950/10" : ""
+                  job.is_featured ? "border-amber-900/50 bg-amber-950/10" : ""
                 }`}
                 style={{ animationDelay: `${i * 100}ms` }}
+                role="listitem"
               >
-                {job.featured && (
+                {job.is_featured && (
                   <div className="mb-4 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-amber-500">
-                    <Zap className="h-3 w-3" />
+                    <Zap className="h-3 w-3" aria-hidden="true" />
                     Featured
                   </div>
                 )}
                 <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-neutral-900 text-lg font-bold text-neutral-600">
-                    {job.company.charAt(0)}
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-neutral-900 text-lg font-bold text-neutral-600" aria-hidden="true">
+                    {job.company_name.charAt(0)}
                   </div>
                   <div className="min-w-0">
                     <h3 className="font-bold text-white group-hover:underline truncate">
                       {job.title}
                     </h3>
-                    <p className="text-sm text-neutral-400">{job.company}</p>
+                    <p className="text-sm text-neutral-400">{job.company_name}</p>
                   </div>
                 </div>
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   <span className="inline-flex items-center gap-1 bg-emerald-950 px-2 py-1 text-xs font-medium text-emerald-400">
-                    {job.salary}
+                    {formatSalary(job.salary_min, job.salary_max)}
                   </span>
                   <span className="inline-flex items-center gap-1 bg-neutral-900 px-2 py-1 text-xs font-medium text-neutral-400">
-                    <MapPin className="h-3 w-3" />
+                    <MapPin className="h-3 w-3" aria-hidden="true" />
                     {job.location}
                   </span>
                 </div>
@@ -224,7 +229,7 @@ export default function Home() {
               className="btn btn-secondary px-6 py-3 text-sm"
             >
               View All Jobs
-              <ChevronRight className="ml-2 h-4 w-4" />
+              <ChevronRight className="ml-2 h-4 w-4" aria-hidden="true" />
             </Link>
           </div>
         </div>
@@ -246,7 +251,7 @@ export default function Home() {
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             <div className="card card-glow p-8 text-center hover-lift">
               <div className="mx-auto flex h-14 w-14 items-center justify-center border border-neutral-800 text-white">
-                <DollarSign className="h-7 w-7" />
+                <DollarSign className="h-7 w-7" aria-hidden="true" />
               </div>
               <h3 className="mt-6 text-lg font-bold uppercase tracking-tight text-white">
                 $100K+ Minimum
@@ -258,7 +263,7 @@ export default function Home() {
 
             <div className="card card-glow p-8 text-center hover-lift">
               <div className="mx-auto flex h-14 w-14 items-center justify-center border border-neutral-800 text-white">
-                <GraduationCap className="h-7 w-7" />
+                <GraduationCap className="h-7 w-7" aria-hidden="true" />
               </div>
               <h3 className="mt-6 text-lg font-bold uppercase tracking-tight text-white">
                 No Degree Required
@@ -270,7 +275,7 @@ export default function Home() {
 
             <div className="card card-glow p-8 text-center hover-lift">
               <div className="mx-auto flex h-14 w-14 items-center justify-center border border-neutral-800 text-white">
-                <Briefcase className="h-7 w-7" />
+                <Briefcase className="h-7 w-7" aria-hidden="true" />
               </div>
               <h3 className="mt-6 text-lg font-bold uppercase tracking-tight text-white">
                 Zero Experience
@@ -282,7 +287,7 @@ export default function Home() {
 
             <div className="card card-glow p-8 text-center hover-lift">
               <div className="mx-auto flex h-14 w-14 items-center justify-center border border-neutral-800 text-white">
-                <Globe className="h-7 w-7" />
+                <Globe className="h-7 w-7" aria-hidden="true" />
               </div>
               <h3 className="mt-6 text-lg font-bold uppercase tracking-tight text-white">
                 Remote & On-site
@@ -349,12 +354,12 @@ export default function Home() {
 
           <div className="grid gap-8 md:grid-cols-3">
             <div className="relative">
-              <div className="absolute -left-4 top-0 text-8xl font-black text-neutral-900">
+              <div className="absolute -left-4 top-0 text-8xl font-black text-neutral-900" aria-hidden="true">
                 1
               </div>
               <div className="relative pt-4 pl-8">
                 <div className="flex h-12 w-12 items-center justify-center bg-white text-black">
-                  <Target className="h-6 w-6" />
+                  <Target className="h-6 w-6" aria-hidden="true" />
                 </div>
                 <h3 className="mt-6 text-xl font-bold uppercase tracking-tight text-white">
                   Take the Pledge
@@ -367,12 +372,12 @@ export default function Home() {
             </div>
 
             <div className="relative">
-              <div className="absolute -left-4 top-0 text-8xl font-black text-neutral-900">
+              <div className="absolute -left-4 top-0 text-8xl font-black text-neutral-900" aria-hidden="true">
                 2
               </div>
               <div className="relative pt-4 pl-8">
                 <div className="flex h-12 w-12 items-center justify-center bg-white text-black">
-                  <Briefcase className="h-6 w-6" />
+                  <Briefcase className="h-6 w-6" aria-hidden="true" />
                 </div>
                 <h3 className="mt-6 text-xl font-bold uppercase tracking-tight text-white">
                   Apply to Jobs
@@ -385,12 +390,12 @@ export default function Home() {
             </div>
 
             <div className="relative">
-              <div className="absolute -left-4 top-0 text-8xl font-black text-neutral-900">
+              <div className="absolute -left-4 top-0 text-8xl font-black text-neutral-900" aria-hidden="true">
                 3
               </div>
               <div className="relative pt-4 pl-8">
                 <div className="flex h-12 w-12 items-center justify-center bg-white text-black">
-                  <TrendingUp className="h-6 w-6" />
+                  <TrendingUp className="h-6 w-6" aria-hidden="true" />
                 </div>
                 <h3 className="mt-6 text-xl font-bold uppercase tracking-tight text-white">
                   Land Your Job
@@ -413,7 +418,7 @@ export default function Home() {
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-20 items-center">
             <div>
               <div className="inline-flex items-center gap-2 bg-amber-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-black mb-6">
-                <Shield className="h-4 w-4" />
+                <Shield className="h-4 w-4" aria-hidden="true" />
                 The Hardcore Pledge
               </div>
               <h2 className="text-3xl font-black uppercase tracking-tight text-white sm:text-4xl lg:text-5xl">
@@ -429,7 +434,7 @@ export default function Home() {
                 className="btn btn-primary mt-8 px-8 py-4 text-base"
               >
                 Take the Pledge
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
               </Link>
             </div>
 
@@ -460,7 +465,7 @@ export default function Home() {
                   key={item.num}
                   className="card flex items-start gap-4 p-6 hover-lift"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-white text-sm font-bold text-black">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-white text-sm font-bold text-black" aria-hidden="true">
                     {item.num}
                   </div>
                   <div>
@@ -510,12 +515,13 @@ export default function Home() {
                 company: "PowerGrid Systems",
               },
             ].map((testimonial, i) => (
-              <div key={i} className="card p-8 hover-lift">
-                <div className="flex gap-1 mb-4">
+              <article key={i} className="card p-8 hover-lift">
+                <div className="flex gap-1 mb-4" aria-label="5 star rating">
                   {[...Array(5)].map((_, j) => (
                     <Star
                       key={j}
                       className="h-4 w-4 fill-amber-500 text-amber-500"
+                      aria-hidden="true"
                     />
                   ))}
                 </div>
@@ -523,7 +529,7 @@ export default function Home() {
                   &ldquo;{testimonial.quote}&rdquo;
                 </blockquote>
                 <div className="mt-6 flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center bg-neutral-800 text-lg font-bold text-white">
+                  <div className="flex h-12 w-12 items-center justify-center bg-neutral-800 text-lg font-bold text-white" aria-hidden="true">
                     {testimonial.name.charAt(0)}
                   </div>
                   <div>
@@ -533,7 +539,7 @@ export default function Home() {
                     </p>
                   </div>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         </div>
@@ -545,7 +551,7 @@ export default function Home() {
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div>
               <div className="inline-flex items-center gap-2 border border-neutral-800 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-neutral-400 mb-6">
-                <Building2 className="h-4 w-4" />
+                <Building2 className="h-4 w-4" aria-hidden="true" />
                 For Employers
               </div>
               <h2 className="text-3xl font-black uppercase tracking-tight text-white sm:text-4xl lg:text-5xl">
@@ -565,7 +571,7 @@ export default function Home() {
                   "48-hour average response time",
                 ].map((item, i) => (
                   <li key={i} className="flex items-center gap-3 text-neutral-300">
-                    <span className="flex h-6 w-6 items-center justify-center bg-white text-xs font-bold text-black">
+                    <span className="flex h-6 w-6 items-center justify-center bg-white text-xs font-bold text-black" aria-hidden="true">
                       ✓
                     </span>
                     {item}
@@ -595,7 +601,7 @@ export default function Home() {
                 channels. The pledge means something.&rdquo;
               </blockquote>
               <div className="mt-8 flex items-center gap-4">
-                <div className="h-14 w-14 bg-neutral-800 flex items-center justify-center text-xl font-bold">
+                <div className="h-14 w-14 bg-neutral-800 flex items-center justify-center text-xl font-bold" aria-hidden="true">
                   S
                 </div>
                 <div>
@@ -670,7 +676,7 @@ export default function Home() {
               >
                 <summary className="flex items-center justify-between font-semibold text-white list-none">
                   {faq.q}
-                  <ChevronRight className="h-5 w-5 text-neutral-500 transition-transform group-open:rotate-90" />
+                  <ChevronRight className="h-5 w-5 text-neutral-500 transition-transform group-open:rotate-90" aria-hidden="true" />
                 </summary>
                 <p className="mt-4 text-neutral-400 pr-8">{faq.a}</p>
               </details>
@@ -699,7 +705,7 @@ export default function Home() {
               className="btn btn-primary w-full px-8 py-4 text-base sm:w-auto"
             >
               Browse Jobs
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
             </Link>
             <Link
               href="/sign-up"

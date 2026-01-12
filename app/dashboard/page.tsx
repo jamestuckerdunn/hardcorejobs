@@ -2,12 +2,8 @@ import Link from "next/link";
 import {
   Briefcase,
   Bookmark,
-  FileText,
-  Bell,
-  TrendingUp,
   Eye,
-  CheckCircle2,
-  Clock,
+  TrendingUp,
   ArrowRight,
   Plus,
   Zap,
@@ -15,79 +11,44 @@ import {
 } from "lucide-react";
 import { StatsCard } from "@/components/ui/card";
 
-// Sample data - in production this would come from the database
-const stats = {
-  applications: 12,
-  savedJobs: 8,
-  profileViews: 47,
-  interviews: 3,
-};
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-const recentApplications = [
-  {
-    id: "1",
-    title: "Sales Development Representative",
-    company: "TechFlow Inc",
-    status: "interviewing",
-    appliedAt: "2 days ago",
-  },
-  {
-    id: "2",
-    title: "Field Service Technician",
-    company: "PowerGrid Systems",
-    status: "applied",
-    appliedAt: "5 days ago",
-  },
-  {
-    id: "3",
-    title: "Customer Success Manager",
-    company: "DataSync Corp",
-    status: "applied",
-    appliedAt: "1 week ago",
-  },
-];
+interface Job {
+  id: string;
+  title: string;
+  company_name: string;
+  salary_min?: number;
+  salary_max?: number;
+  is_featured: boolean;
+}
 
-const savedJobs = [
-  {
-    id: "4",
-    title: "Account Executive",
-    company: "CloudBase",
-    salary: "$130K - $180K",
-  },
-  {
-    id: "5",
-    title: "Insurance Sales Agent",
-    company: "SecureLife",
-    salary: "$100K - $200K",
-  },
-];
+async function getRecommendedJobs(): Promise<Job[]> {
+  try {
+    const response = await fetch(`${APP_URL}/api/jobs?limit=4`, {
+      next: { revalidate: 300 },
+    });
 
-const recommendedJobs = [
-  {
-    id: "6",
-    title: "Business Development Rep",
-    company: "SaaS Startup",
-    salary: "$110K - $160K",
-    featured: true,
-  },
-  {
-    id: "7",
-    title: "Solar Installation Tech",
-    company: "SunPower",
-    salary: "$100K - $125K",
-    featured: false,
-  },
-];
+    if (!response.ok) {
+      return [];
+    }
 
-const statusColors = {
-  applied: "bg-blue-950 text-blue-400",
-  interviewing: "bg-amber-950 text-amber-400",
-  offered: "bg-emerald-950 text-emerald-400",
-  rejected: "bg-red-950 text-red-400",
-};
+    const data = await response.json();
+    return data.jobs || [];
+  } catch {
+    return [];
+  }
+}
 
-export default function DashboardPage() {
-  const pledgeSigned = true; // In production, check user profile
+function formatSalary(min?: number, max?: number): string {
+  if (!min && !max) return "Competitive";
+  if (min && max) return `$${Math.round(min / 1000)}K - $${Math.round(max / 1000)}K`;
+  if (min) return `$${Math.round(min / 1000)}K+`;
+  return `Up to $${Math.round(max! / 1000)}K`;
+}
+
+export default async function DashboardPage() {
+  const recommendedJobs = await getRecommendedJobs();
+  const pledgeSigned = false; // Placeholder - would come from user profile API
 
   return (
     <div className="bg-black min-h-screen">
@@ -107,7 +68,7 @@ export default function DashboardPage() {
               href="/jobs"
               className="btn btn-primary px-6 py-3 text-sm"
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
               Browse Jobs
             </Link>
           </div>
@@ -119,7 +80,7 @@ export default function DashboardPage() {
         {!pledgeSigned && (
           <div className="mb-8 border border-amber-900/50 bg-amber-950/20 p-6">
             <div className="flex items-start gap-4">
-              <Shield className="h-6 w-6 text-amber-500 shrink-0" />
+              <Shield className="h-6 w-6 text-amber-500 shrink-0" aria-hidden="true" />
               <div className="flex-1">
                 <h3 className="font-bold text-white">
                   Take the Hardcore Pledge
@@ -143,24 +104,22 @@ export default function DashboardPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
           <StatsCard
             label="Applications"
-            value={stats.applications}
+            value={0}
             icon={<Briefcase className="h-5 w-5" />}
-            change={{ value: 20, type: "increase" }}
           />
           <StatsCard
             label="Saved Jobs"
-            value={stats.savedJobs}
+            value={0}
             icon={<Bookmark className="h-5 w-5" />}
           />
           <StatsCard
             label="Profile Views"
-            value={stats.profileViews}
+            value={0}
             icon={<Eye className="h-5 w-5" />}
-            change={{ value: 15, type: "increase" }}
           />
           <StatsCard
             label="Interviews"
-            value={stats.interviews}
+            value={0}
             icon={<TrendingUp className="h-5 w-5" />}
           />
         </div>
@@ -174,56 +133,20 @@ export default function DashboardPage() {
                 <h2 className="text-lg font-bold uppercase tracking-tight text-white">
                   Recent Applications
                 </h2>
+              </div>
+              <div className="p-12 text-center">
+                <Briefcase className="h-8 w-8 text-neutral-700 mx-auto" aria-hidden="true" />
+                <p className="mt-4 text-neutral-500">No applications yet</p>
+                <p className="mt-1 text-sm text-neutral-600">
+                  Start applying to high-paying jobs today
+                </p>
                 <Link
-                  href="/dashboard/applications"
-                  className="text-sm font-semibold uppercase tracking-wider text-neutral-400 hover:text-white transition-colors"
+                  href="/jobs"
+                  className="btn btn-secondary mt-4 px-6 py-2 text-sm"
                 >
-                  View All
+                  Browse Jobs
                 </Link>
               </div>
-              <div className="divide-y divide-neutral-800">
-                {recentApplications.map((app) => (
-                  <Link
-                    key={app.id}
-                    href={`/dashboard/applications/${app.id}`}
-                    className="flex items-center justify-between p-6 hover:bg-neutral-950 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-neutral-900 text-sm font-bold text-neutral-600">
-                        {app.company.charAt(0)}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-white">{app.title}</p>
-                        <p className="text-sm text-neutral-500">{app.company}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span
-                        className={`px-2 py-1 text-xs font-medium uppercase ${
-                          statusColors[app.status as keyof typeof statusColors]
-                        }`}
-                      >
-                        {app.status}
-                      </span>
-                      <span className="text-xs text-neutral-600">
-                        {app.appliedAt}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-              {recentApplications.length === 0 && (
-                <div className="p-12 text-center">
-                  <Briefcase className="h-8 w-8 text-neutral-700 mx-auto" />
-                  <p className="mt-4 text-neutral-500">No applications yet</p>
-                  <Link
-                    href="/jobs"
-                    className="btn btn-secondary mt-4 px-6 py-2 text-sm"
-                  >
-                    Browse Jobs
-                  </Link>
-                </div>
-              )}
             </div>
 
             {/* Recommended Jobs */}
@@ -239,31 +162,41 @@ export default function DashboardPage() {
                   View All
                 </Link>
               </div>
-              <div className="divide-y divide-neutral-800">
-                {recommendedJobs.map((job) => (
-                  <Link
-                    key={job.id}
-                    href={`/jobs/${job.id}`}
-                    className="flex items-center justify-between p-6 hover:bg-neutral-950 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      {job.featured && (
-                        <Zap className="h-4 w-4 text-amber-500" />
-                      )}
-                      <div>
-                        <p className="font-semibold text-white">{job.title}</p>
-                        <p className="text-sm text-neutral-500">{job.company}</p>
+              {recommendedJobs.length > 0 ? (
+                <div className="divide-y divide-neutral-800">
+                  {recommendedJobs.map((job) => (
+                    <Link
+                      key={job.id}
+                      href={`/jobs/${job.id}`}
+                      className="flex items-center justify-between p-6 hover:bg-neutral-950 transition-colors"
+                    >
+                      <div className="flex items-center gap-4">
+                        {job.is_featured && (
+                          <Zap className="h-4 w-4 text-amber-500" aria-hidden="true" />
+                        )}
+                        <div>
+                          <p className="font-semibold text-white">{job.title}</p>
+                          <p className="text-sm text-neutral-500">{job.company_name}</p>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm font-medium text-emerald-400">
-                        {job.salary}
-                      </span>
-                      <ArrowRight className="h-4 w-4 text-neutral-600" />
-                    </div>
-                  </Link>
-                ))}
-              </div>
+                      <div className="flex items-center gap-4">
+                        <span className="text-sm font-medium text-emerald-400">
+                          {formatSalary(job.salary_min, job.salary_max)}
+                        </span>
+                        <ArrowRight className="h-4 w-4 text-neutral-600" aria-hidden="true" />
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-12 text-center">
+                  <Briefcase className="h-8 w-8 text-neutral-700 mx-auto" aria-hidden="true" />
+                  <p className="mt-4 text-neutral-500">No jobs available</p>
+                  <p className="mt-1 text-sm text-neutral-600">
+                    Check back soon for new opportunities
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -277,29 +210,18 @@ export default function DashboardPage() {
               <div className="relative h-2 bg-neutral-800 mb-4">
                 <div
                   className="absolute inset-y-0 left-0 bg-white"
-                  style={{ width: "75%" }}
+                  style={{ width: "25%" }}
                 />
               </div>
               <p className="text-sm text-neutral-400 mb-4">
-                <span className="text-white font-semibold">75%</span> complete
+                <span className="text-white font-semibold">25%</span> complete
               </p>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  <span className="text-neutral-400">Basic info added</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                  <span className="text-neutral-400">Resume uploaded</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock className="h-4 w-4 text-neutral-600" />
-                  <span className="text-neutral-500">Add work preferences</span>
-                </div>
-              </div>
+              <p className="text-sm text-neutral-500 mb-4">
+                Complete your profile to stand out to employers and get better job matches.
+              </p>
               <Link
                 href="/profile"
-                className="btn btn-secondary w-full mt-4 py-2 text-sm"
+                className="btn btn-secondary w-full py-2 text-sm"
               >
                 Complete Profile
               </Link>
@@ -310,45 +232,33 @@ export default function DashboardPage() {
               <h3 className="text-sm font-semibold uppercase tracking-wider text-neutral-500 mb-4">
                 Saved Jobs
               </h3>
-              <div className="space-y-4">
-                {savedJobs.map((job) => (
-                  <Link
-                    key={job.id}
-                    href={`/jobs/${job.id}`}
-                    className="block p-4 border border-neutral-800 hover:border-neutral-600 transition-colors"
-                  >
-                    <p className="font-semibold text-white text-sm">
-                      {job.title}
-                    </p>
-                    <p className="text-xs text-neutral-500">{job.company}</p>
-                    <p className="mt-2 text-xs font-medium text-emerald-400">
-                      {job.salary}
-                    </p>
-                  </Link>
-                ))}
+              <div className="p-6 text-center">
+                <Bookmark className="h-6 w-6 text-neutral-700 mx-auto" aria-hidden="true" />
+                <p className="mt-2 text-sm text-neutral-500">No saved jobs yet</p>
+                <p className="mt-1 text-xs text-neutral-600">
+                  Save jobs to review later
+                </p>
               </div>
               <Link
-                href="/dashboard/saved"
-                className="block mt-4 text-center text-sm font-semibold uppercase tracking-wider text-neutral-400 hover:text-white transition-colors"
+                href="/jobs"
+                className="block text-center text-sm font-semibold uppercase tracking-wider text-neutral-400 hover:text-white transition-colors"
               >
-                View All Saved
+                Find Jobs to Save
               </Link>
             </div>
 
-            {/* Job Alerts */}
-            <div className="border border-neutral-800 p-6">
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-neutral-500 mb-4">
-                Job Alerts
-              </h3>
-              <p className="text-sm text-neutral-400 mb-4">
-                Get notified when new jobs match your criteria.
+            {/* Get Started CTA */}
+            <div className="border border-neutral-800 bg-neutral-950 p-6">
+              <h3 className="font-bold text-white">Ready to Land Your Dream Job?</h3>
+              <p className="mt-2 text-sm text-neutral-400">
+                Browse $100K+ jobs that don&apos;t require experience or a degree.
               </p>
               <Link
-                href="/dashboard/alerts"
-                className="btn btn-secondary w-full py-2 text-sm"
+                href="/jobs"
+                className="btn btn-primary w-full mt-4 py-3 text-sm"
               >
-                <Bell className="mr-2 h-4 w-4" />
-                Manage Alerts
+                Browse All Jobs
+                <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </div>
           </div>

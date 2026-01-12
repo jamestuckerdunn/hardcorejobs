@@ -2,7 +2,7 @@
 
 import { clsx } from "clsx";
 import { Search, X } from "lucide-react";
-import { forwardRef, useState } from "react";
+import { forwardRef } from "react";
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -205,6 +205,13 @@ export function Checkbox({
         className
       )}
     >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="sr-only"
+        aria-hidden="true"
+      />
       <div
         className={clsx(
           "w-5 h-5 border flex items-center justify-center transition-all",
@@ -212,6 +219,7 @@ export function Checkbox({
             ? "bg-white border-white"
             : "bg-transparent border-neutral-700 group-hover:border-neutral-500"
         )}
+        aria-hidden="true"
       >
         {checked && (
           <svg

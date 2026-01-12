@@ -3,52 +3,58 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Linkedin,
-  Globe,
   Shield,
   CheckCircle2,
   Upload,
   Save,
   ArrowRight,
+  AlertCircle,
 } from "lucide-react";
-import { Input, Textarea, Select, Checkbox } from "@/components/ui/input";
+import { Input, Textarea, Checkbox } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [profile, setProfile] = useState({
-    fullName: "John Doe",
-    email: "john@example.com",
-    phone: "+1 (555) 123-4567",
-    headline: "Ambitious professional ready to prove myself",
-    location: "Austin, TX",
-    willingToRelocate: true,
-    linkedinUrl: "https://linkedin.com/in/johndoe",
+    fullName: "",
+    email: "",
+    phone: "",
+    headline: "",
+    location: "",
+    willingToRelocate: false,
+    linkedinUrl: "",
     portfolioUrl: "",
-    bio: "I'm a highly motivated individual looking for my first opportunity in tech sales. I'm willing to work hard, learn fast, and relocate anywhere for the right opportunity.",
+    bio: "",
   });
 
-  const [pledgeStatus, setPledgeStatus] = useState({
-    signed: true,
-    date: "January 5, 2025",
+  const [pledgeStatus] = useState({
+    signed: false,
+    date: "",
     commitments: {
-      relocate: true,
-      hours: true,
-      immediate: true,
-      twoYears: true,
+      relocate: false,
+      hours: false,
+      immediate: false,
+      twoYears: false,
     },
   });
 
   const handleSave = async () => {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
+    setSaveMessage(null);
+
+    try {
+      // API integration placeholder - will save to backend when available
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      setSaveMessage({ type: "success", text: "Profile saved locally. Backend integration coming soon." });
+    } catch {
+      setSaveMessage({ type: "error", text: "Failed to save profile. Please try again." });
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const profileCompletion = calculateProfileCompletion(profile);
 
   return (
     <div className="bg-black min-h-screen">
@@ -65,21 +71,48 @@ export default function ProfilePage() {
       </div>
 
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Save Message */}
+        {saveMessage && (
+          <div
+            className={`mb-8 border p-4 ${
+              saveMessage.type === "success"
+                ? "border-emerald-900/50 bg-emerald-950/20 text-emerald-400"
+                : "border-red-900/50 bg-red-950/20 text-red-400"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              {saveMessage.type === "success" ? (
+                <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <AlertCircle className="h-4 w-4" aria-hidden="true" />
+              )}
+              <p className="text-sm">{saveMessage.text}</p>
+            </div>
+          </div>
+        )}
+
         {/* Profile Completion Banner */}
         <div className="mb-8 border border-amber-900/50 bg-amber-950/20 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="font-bold text-white">Profile 75% Complete</h3>
+              <h3 className="font-bold text-white">Profile {profileCompletion}% Complete</h3>
               <p className="mt-1 text-sm text-neutral-400">
-                Add your portfolio URL to complete your profile and improve visibility.
+                {profileCompletion < 100
+                  ? "Complete your profile to improve your visibility to employers."
+                  : "Great job! Your profile is complete."}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-3xl font-black text-white">75%</p>
+              <p className="text-3xl font-black text-white">{profileCompletion}%</p>
             </div>
           </div>
           <div className="mt-4 h-2 bg-neutral-800">
-            <div className="h-full w-3/4 bg-amber-500" />
+            <div
+              className={`h-full transition-all ${
+                profileCompletion === 100 ? "bg-emerald-500" : "bg-amber-500"
+              }`}
+              style={{ width: `${profileCompletion}%` }}
+            />
           </div>
         </div>
 
@@ -106,8 +139,6 @@ export default function ProfilePage() {
                   setProfile({ ...profile, email: e.target.value })
                 }
                 placeholder="your@email.com"
-                disabled
-                hint="Email is managed by your account settings"
               />
               <Input
                 label="Phone"
@@ -191,22 +222,17 @@ export default function ProfilePage() {
               <h2 className="text-lg font-bold uppercase tracking-tight text-white">
                 Resume
               </h2>
-              <Link
-                href="/profile/resume"
-                className="text-sm font-semibold uppercase tracking-wider text-neutral-400 hover:text-white transition-colors"
-              >
-                Manage Resume
-              </Link>
             </div>
             <div className="border-2 border-dashed border-neutral-800 p-8 text-center">
-              <Upload className="h-8 w-8 text-neutral-600 mx-auto" />
+              <Upload className="h-8 w-8 text-neutral-600 mx-auto" aria-hidden="true" />
               <p className="mt-4 text-neutral-400">
-                <span className="text-white font-semibold">resume_johndoe.pdf</span>
-                <br />
-                <span className="text-sm">Uploaded Jan 5, 2025</span>
+                No resume uploaded yet
+              </p>
+              <p className="mt-1 text-sm text-neutral-500">
+                Upload your resume to apply to jobs faster
               </p>
               <button className="btn btn-secondary mt-4 px-6 py-2 text-sm">
-                Replace Resume
+                Upload Resume
               </button>
             </div>
           </div>
@@ -224,6 +250,7 @@ export default function ProfilePage() {
                 className={`h-8 w-8 shrink-0 ${
                   pledgeStatus.signed ? "text-emerald-500" : "text-neutral-600"
                 }`}
+                aria-hidden="true"
               />
               <div className="flex-1">
                 <h2 className="text-lg font-bold uppercase tracking-tight text-white">
@@ -237,19 +264,19 @@ export default function ProfilePage() {
                     </p>
                     <div className="mt-4 grid gap-2 sm:grid-cols-2">
                       <div className="flex items-center gap-2 text-sm text-emerald-400">
-                        <CheckCircle2 className="h-4 w-4" />
+                        <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
                         Willing to relocate anywhere
                       </div>
                       <div className="flex items-center gap-2 text-sm text-emerald-400">
-                        <CheckCircle2 className="h-4 w-4" />
+                        <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
                         Ready for 60+ hour weeks
                       </div>
                       <div className="flex items-center gap-2 text-sm text-emerald-400">
-                        <CheckCircle2 className="h-4 w-4" />
+                        <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
                         Available to start immediately
                       </div>
                       <div className="flex items-center gap-2 text-sm text-emerald-400">
-                        <CheckCircle2 className="h-4 w-4" />
+                        <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
                         Committed for 2+ years
                       </div>
                     </div>
@@ -262,10 +289,10 @@ export default function ProfilePage() {
                     </p>
                     <Link
                       href="/onboarding/pledge"
-                      className="btn btn-primary mt-4 px-6 py-3 text-sm"
+                      className="btn btn-primary mt-4 px-6 py-3 text-sm inline-flex items-center"
                     >
                       Take the Pledge
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                      <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
                     </Link>
                   </>
                 )}
@@ -288,4 +315,29 @@ export default function ProfilePage() {
       </div>
     </div>
   );
+}
+
+function calculateProfileCompletion(profile: {
+  fullName: string;
+  email: string;
+  phone: string;
+  headline: string;
+  location: string;
+  bio: string;
+  linkedinUrl: string;
+  portfolioUrl: string;
+}): number {
+  const fields = [
+    profile.fullName,
+    profile.email,
+    profile.phone,
+    profile.headline,
+    profile.location,
+    profile.bio,
+    profile.linkedinUrl,
+    profile.portfolioUrl,
+  ];
+
+  const filledFields = fields.filter((field) => field.trim() !== "").length;
+  return Math.round((filledFields / fields.length) * 100);
 }

@@ -1,10 +1,8 @@
 import Link from "next/link";
 import {
   Check,
-  Zap,
   Building2,
   Users,
-  Shield,
   ArrowRight,
   Star,
   ChevronRight,
