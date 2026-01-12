@@ -2,7 +2,7 @@
 
 import { clsx } from "clsx";
 import { Search, X } from "lucide-react";
-import { forwardRef, useState } from "react";
+import { forwardRef } from "react";
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -204,6 +204,7 @@ export function Checkbox({
         "flex items-center gap-3 cursor-pointer group",
         className
       )}
+      onClick={() => onChange(!checked)}
     >
       <div
         className={clsx(

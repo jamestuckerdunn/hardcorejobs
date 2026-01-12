@@ -1,4 +1,4 @@
-import { JobCardSkeleton, JobListSkeleton } from "@/components/ui/loading";
+import { JobListSkeleton } from "@/components/ui/loading";
 
 export default function JobsLoading() {
   return (

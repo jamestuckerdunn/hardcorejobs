@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { clsx } from "clsx";
 import { SearchInput, Select, Checkbox } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { SlidersHorizontal, X, ChevronDown, ChevronUp } from "lucide-react";
