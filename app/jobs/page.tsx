@@ -6,7 +6,6 @@ import { JobFilters, QuickFilters, JobFilters as JobFiltersType } from "@/compon
 import { NoJobsFound } from "@/components/ui/empty-state";
 import { Zap, TrendingUp, MapPin, Building2 } from "lucide-react";
 
-// Sample job data - in production this would come from the API
 const sampleJobs: Job[] = [
   {
     id: "1",
@@ -180,69 +179,54 @@ export default function JobsPage() {
   };
 
   const filteredJobs = useMemo(() => {
-    let result = [...sampleJobs];
+    let jobs = [...sampleJobs];
 
-    // Search filter
     if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      result = result.filter(
+      const searchTerm = filters.search.toLowerCase();
+      jobs = jobs.filter(
         (job) =>
-          job.title.toLowerCase().includes(searchLower) ||
-          job.company_name.toLowerCase().includes(searchLower) ||
-          job.description.toLowerCase().includes(searchLower)
+          job.title.toLowerCase().includes(searchTerm) ||
+          job.company_name.toLowerCase().includes(searchTerm) ||
+          job.description.toLowerCase().includes(searchTerm)
       );
     }
 
-    // Location filter
     if (filters.location) {
       if (filters.location === "remote") {
-        result = result.filter((job) => job.remote_type === "remote");
+        jobs = jobs.filter((job) => job.remote_type === "remote");
       } else {
-        result = result.filter((job) =>
+        jobs = jobs.filter((job) =>
           job.location.toLowerCase().includes(filters.location.replace("-", " "))
         );
       }
     }
 
-    // Remote type filter
     if (filters.remoteType) {
-      result = result.filter((job) => job.remote_type === filters.remoteType);
+      jobs = jobs.filter((job) => job.remote_type === filters.remoteType);
     }
 
-    // Salary filter
     if (filters.salaryMin) {
-      const minSalary = parseInt(filters.salaryMin);
-      result = result.filter(
-        (job) => job.salary_min && job.salary_min >= minSalary
+      const minimumSalary = parseInt(filters.salaryMin);
+      jobs = jobs.filter(
+        (job) => job.salary_min && job.salary_min >= minimumSalary
       );
     }
 
-    // Featured only filter
     if (filters.featuredOnly) {
-      result = result.filter((job) => job.is_featured);
+      jobs = jobs.filter((job) => job.is_featured);
     }
 
-    // Sort
-    switch (filters.sortBy) {
-      case "salary-high":
-        result.sort((a, b) => (b.salary_max || 0) - (a.salary_max || 0));
-        break;
-      case "salary-low":
-        result.sort((a, b) => (a.salary_min || 0) - (b.salary_min || 0));
-        break;
-      case "featured":
-        result.sort((a, b) => (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0));
-        break;
-      case "recent":
-      default:
-        result.sort(
-          (a, b) =>
-            new Date(b.posted_at).getTime() - new Date(a.posted_at).getTime()
-        );
-        break;
-    }
+    const sortFunctions: Record<string, (a: Job, b: Job) => number> = {
+      "salary-high": (a, b) => (b.salary_max || 0) - (a.salary_max || 0),
+      "salary-low": (a, b) => (a.salary_min || 0) - (b.salary_min || 0),
+      "featured": (a, b) => (b.is_featured ? 1 : 0) - (a.is_featured ? 1 : 0),
+      "recent": (a, b) => new Date(b.posted_at).getTime() - new Date(a.posted_at).getTime(),
+    };
 
-    return result;
+    const sortFunction = sortFunctions[filters.sortBy] || sortFunctions["recent"];
+    jobs.sort(sortFunction);
+
+    return jobs;
   }, [filters]);
 
   const featuredJobs = filteredJobs.filter((job) => job.is_featured);

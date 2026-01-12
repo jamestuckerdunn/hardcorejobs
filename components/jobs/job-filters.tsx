@@ -172,7 +172,6 @@ export function JobFilters({
   );
 }
 
-// Quick filter pills for common searches
 interface QuickFiltersProps {
   onSelect: (filters: Partial<JobFilters>) => void;
 }

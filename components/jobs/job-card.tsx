@@ -178,7 +178,6 @@ export function JobCard({
   );
 }
 
-// Compact version for lists/sidebars
 interface JobCardCompactProps {
   job: Job;
   className?: string;
@@ -227,7 +226,6 @@ export function JobCardCompact({ job, className }: JobCardCompactProps) {
   );
 }
 
-// Featured job card with more prominent styling
 interface FeaturedJobCardProps {
   job: Job;
   onSave?: (jobId: string) => void;
