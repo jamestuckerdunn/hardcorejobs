@@ -19,7 +19,7 @@ const steps = [
   { id: "profile", title: "Your Profile" },
   { id: "pledge", title: "The Pledge" },
   { id: "complete", title: "All Done" },
-];
+] as const;
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -59,7 +59,10 @@ export default function OnboardingPage() {
   };
 
   const renderStep = () => {
-    switch (steps[currentStep].id) {
+    const currentStepData = steps[currentStep];
+    if (!currentStepData) return null;
+
+    switch (currentStepData.id) {
       case "role":
         return (
           <div className="text-center">
@@ -396,7 +399,7 @@ export default function OnboardingPage() {
             ))}
           </div>
           <p className="mt-2 text-center text-sm text-neutral-500">
-            Step {currentStep + 1} of {steps.length}: {steps[currentStep].title}
+            Step {currentStep + 1} of {steps.length}: {steps[currentStep]?.title}
           </p>
         </div>
       </div>

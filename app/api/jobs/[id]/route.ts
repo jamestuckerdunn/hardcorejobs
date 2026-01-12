@@ -21,13 +21,14 @@ export async function GET(
       WHERE j.id = ${id}
     `;
 
-    if (jobs.length === 0) {
+    const job = jobs[0];
+    if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-    const job = jobs[0];
+    const titleFirstWord = (job.title as string).split(" ")[0] ?? "";
+    const companyName = job.company_name as string;
 
-    // Get similar jobs (same company or similar title)
     const similarJobs = await sql`
       SELECT
         id,
@@ -41,8 +42,8 @@ export async function GET(
       WHERE id != ${id}
         AND status = 'active'
         AND (
-          company_name = ${job.company_name}
-          OR title ILIKE '%' || ${job.title.split(' ')[0]} || '%'
+          company_name = ${companyName}
+          OR title ILIKE '%' || ${titleFirstWord} || '%'
         )
       ORDER BY is_featured DESC, posted_at DESC
       LIMIT 5
