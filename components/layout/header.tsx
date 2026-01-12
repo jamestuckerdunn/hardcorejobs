@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import {
   Menu,
   X,
@@ -13,6 +12,22 @@ import {
   LayoutDashboard,
   Zap,
 } from "lucide-react";
+
+// Conditionally import Clerk components
+const isClerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+// Dynamic imports for Clerk components to avoid errors when not configured
+let SignedIn: React.ComponentType<{ children: React.ReactNode }> = ({ children }) => null;
+let SignedOut: React.ComponentType<{ children: React.ReactNode }> = ({ children }) => <>{children}</>;
+let UserButton: React.ComponentType<{ appearance?: unknown }> = () => null;
+
+if (isClerkConfigured) {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const clerk = require("@clerk/nextjs");
+  SignedIn = clerk.SignedIn;
+  SignedOut = clerk.SignedOut;
+  UserButton = clerk.UserButton;
+}
 
 const navLinks = [
   { href: "/jobs", label: "Jobs" },
