@@ -1,19 +1,15 @@
 import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
 
-// This endpoint runs database migrations
-// Protect this in production with a secret key
 export async function POST(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const secret = searchParams.get("secret");
 
-    // In production, verify the secret
     if (process.env.CRON_SECRET && secret !== process.env.CRON_SECRET) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Run migrations
     await sql`
       CREATE TABLE IF NOT EXISTS users (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -168,7 +164,6 @@ export async function POST(request: Request) {
       )
     `;
 
-    // Create indexes
     await sql`CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_jobs_salary ON jobs(salary_min, salary_max)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_jobs_location ON jobs(location)`;
@@ -179,7 +174,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, message: "Migrations completed" });
   } catch (error) {
-    console.error("Migration error:", error);
     return NextResponse.json(
       { error: "Migration failed", details: String(error) },
       { status: 500 }

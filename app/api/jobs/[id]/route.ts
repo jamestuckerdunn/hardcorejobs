@@ -1,7 +1,6 @@
 import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
 
-// GET /api/jobs/[id] - Get a single job by ID
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -54,7 +53,6 @@ export async function GET(
       similarJobs,
     });
   } catch (error) {
-    console.error("Error fetching job:", error);
     return NextResponse.json(
       { error: "Failed to fetch job", details: String(error) },
       { status: 500 }

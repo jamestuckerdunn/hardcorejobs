@@ -1,7 +1,6 @@
 import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
 
-// GET /api/jobs/featured - Get featured jobs
 export async function GET() {
   try {
     const jobs = await sql`
@@ -30,7 +29,6 @@ export async function GET() {
 
     return NextResponse.json({ jobs });
   } catch (error) {
-    console.error("Error fetching featured jobs:", error);
     return NextResponse.json(
       { error: "Failed to fetch featured jobs", details: String(error) },
       { status: 500 }

@@ -1,12 +1,10 @@
 import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
 
-// GET /api/jobs - List all jobs with optional filtering
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
 
-    // Parse query parameters
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const search = searchParams.get("search") || "";
@@ -17,77 +15,107 @@ export async function GET(request: Request) {
     const sortBy = searchParams.get("sort") || "recent";
 
     const offset = (page - 1) * limit;
+    const searchPattern = search ? `%${search}%` : null;
+    const locationPattern = location ? `%${location}%` : null;
+    const minSalary = salaryMin ? parseInt(salaryMin) : null;
 
-    // Build the query dynamically based on filters
-    let whereConditions: string[] = ["status = 'active'"];
-
-    if (search) {
-      whereConditions.push(`(title ILIKE '%${search}%' OR company_name ILIKE '%${search}%' OR description ILIKE '%${search}%')`);
-    }
-
-    if (location) {
-      whereConditions.push(`location ILIKE '%${location}%'`);
-    }
-
-    if (remoteType) {
-      whereConditions.push(`remote_type = '${remoteType}'`);
-    }
-
-    if (salaryMin) {
-      whereConditions.push(`salary_min >= ${parseInt(salaryMin)}`);
-    }
-
-    if (featured) {
-      whereConditions.push(`is_featured = true AND (featured_until IS NULL OR featured_until > NOW())`);
-    }
-
-    // Determine sort order
-    let orderBy = "posted_at DESC";
-    switch (sortBy) {
-      case "salary-high":
-        orderBy = "salary_max DESC NULLS LAST";
-        break;
-      case "salary-low":
-        orderBy = "salary_min ASC NULLS LAST";
-        break;
-      case "featured":
-        orderBy = "is_featured DESC, posted_at DESC";
-        break;
-    }
-
-    const whereClause = whereConditions.join(" AND ");
-
-    // Get total count
     const countResult = await sql`
       SELECT COUNT(*) as total
       FROM jobs
-      WHERE ${sql.raw(whereClause)}
+      WHERE status = 'active'
+        AND (${searchPattern}::text IS NULL OR (
+          title ILIKE ${searchPattern} OR
+          company_name ILIKE ${searchPattern} OR
+          description ILIKE ${searchPattern}
+        ))
+        AND (${locationPattern}::text IS NULL OR location ILIKE ${locationPattern})
+        AND (${remoteType}::text = '' OR remote_type = ${remoteType})
+        AND (${minSalary}::int IS NULL OR salary_min >= ${minSalary})
+        AND (${featured}::boolean = false OR (is_featured = true AND (featured_until IS NULL OR featured_until > NOW())))
     `;
 
-    // Get paginated results
-    const jobs = await sql`
-      SELECT
-        id,
-        title,
-        company_name,
-        company_logo_url,
-        location,
-        remote_type,
-        salary_min,
-        salary_max,
-        salary_currency,
-        description,
-        apply_url,
-        is_featured,
-        featured_until,
-        posted_at,
-        source
-      FROM jobs
-      WHERE ${sql.raw(whereClause)}
-      ORDER BY ${sql.raw(orderBy)}
-      LIMIT ${limit}
-      OFFSET ${offset}
-    `;
+    let jobs;
+    if (sortBy === "salary-high") {
+      jobs = await sql`
+        SELECT id, title, company_name, company_logo_url, location, remote_type,
+               salary_min, salary_max, salary_currency, description, apply_url,
+               is_featured, featured_until, posted_at, source
+        FROM jobs
+        WHERE status = 'active'
+          AND (${searchPattern}::text IS NULL OR (
+            title ILIKE ${searchPattern} OR
+            company_name ILIKE ${searchPattern} OR
+            description ILIKE ${searchPattern}
+          ))
+          AND (${locationPattern}::text IS NULL OR location ILIKE ${locationPattern})
+          AND (${remoteType}::text = '' OR remote_type = ${remoteType})
+          AND (${minSalary}::int IS NULL OR salary_min >= ${minSalary})
+          AND (${featured}::boolean = false OR (is_featured = true AND (featured_until IS NULL OR featured_until > NOW())))
+        ORDER BY salary_max DESC NULLS LAST
+        LIMIT ${limit}
+        OFFSET ${offset}
+      `;
+    } else if (sortBy === "salary-low") {
+      jobs = await sql`
+        SELECT id, title, company_name, company_logo_url, location, remote_type,
+               salary_min, salary_max, salary_currency, description, apply_url,
+               is_featured, featured_until, posted_at, source
+        FROM jobs
+        WHERE status = 'active'
+          AND (${searchPattern}::text IS NULL OR (
+            title ILIKE ${searchPattern} OR
+            company_name ILIKE ${searchPattern} OR
+            description ILIKE ${searchPattern}
+          ))
+          AND (${locationPattern}::text IS NULL OR location ILIKE ${locationPattern})
+          AND (${remoteType}::text = '' OR remote_type = ${remoteType})
+          AND (${minSalary}::int IS NULL OR salary_min >= ${minSalary})
+          AND (${featured}::boolean = false OR (is_featured = true AND (featured_until IS NULL OR featured_until > NOW())))
+        ORDER BY salary_min ASC NULLS LAST
+        LIMIT ${limit}
+        OFFSET ${offset}
+      `;
+    } else if (sortBy === "featured") {
+      jobs = await sql`
+        SELECT id, title, company_name, company_logo_url, location, remote_type,
+               salary_min, salary_max, salary_currency, description, apply_url,
+               is_featured, featured_until, posted_at, source
+        FROM jobs
+        WHERE status = 'active'
+          AND (${searchPattern}::text IS NULL OR (
+            title ILIKE ${searchPattern} OR
+            company_name ILIKE ${searchPattern} OR
+            description ILIKE ${searchPattern}
+          ))
+          AND (${locationPattern}::text IS NULL OR location ILIKE ${locationPattern})
+          AND (${remoteType}::text = '' OR remote_type = ${remoteType})
+          AND (${minSalary}::int IS NULL OR salary_min >= ${minSalary})
+          AND (${featured}::boolean = false OR (is_featured = true AND (featured_until IS NULL OR featured_until > NOW())))
+        ORDER BY is_featured DESC, posted_at DESC
+        LIMIT ${limit}
+        OFFSET ${offset}
+      `;
+    } else {
+      jobs = await sql`
+        SELECT id, title, company_name, company_logo_url, location, remote_type,
+               salary_min, salary_max, salary_currency, description, apply_url,
+               is_featured, featured_until, posted_at, source
+        FROM jobs
+        WHERE status = 'active'
+          AND (${searchPattern}::text IS NULL OR (
+            title ILIKE ${searchPattern} OR
+            company_name ILIKE ${searchPattern} OR
+            description ILIKE ${searchPattern}
+          ))
+          AND (${locationPattern}::text IS NULL OR location ILIKE ${locationPattern})
+          AND (${remoteType}::text = '' OR remote_type = ${remoteType})
+          AND (${minSalary}::int IS NULL OR salary_min >= ${minSalary})
+          AND (${featured}::boolean = false OR (is_featured = true AND (featured_until IS NULL OR featured_until > NOW())))
+        ORDER BY posted_at DESC
+        LIMIT ${limit}
+        OFFSET ${offset}
+      `;
+    }
 
     const total = parseInt(countResult[0]?.total || "0");
     const totalPages = Math.ceil(total / limit);
@@ -103,7 +131,6 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error("Error fetching jobs:", error);
     return NextResponse.json(
       { error: "Failed to fetch jobs", details: String(error) },
       { status: 500 }

@@ -7,14 +7,11 @@ import {
   ArrowRight,
   ArrowLeft,
   User,
-  Briefcase,
   Shield,
   CheckCircle2,
-  Upload,
-  MapPin,
   Building2,
 } from "lucide-react";
-import { Input, Textarea, Checkbox } from "@/components/ui/input";
+import { Input, Checkbox } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const steps = [
