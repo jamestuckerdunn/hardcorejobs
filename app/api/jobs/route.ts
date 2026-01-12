@@ -2,6 +2,25 @@ import { sql, isDatabaseAvailable } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { jobsQuerySchema, parseQuery, formatZodError } from "@/lib/validations";
 
+interface JobRow {
+  id: string;
+  title: string;
+  company_name: string;
+  company_logo_url?: string;
+  location: string;
+  remote_type: string;
+  salary_min?: number;
+  salary_max?: number;
+  salary_currency: string;
+  description: string;
+  apply_url: string;
+  is_featured: boolean;
+  featured_until?: string;
+  posted_at: string;
+  source: string;
+  total_count: string;
+}
+
 // GET /api/jobs - List all jobs with optional filtering
 export async function GET(request: Request) {
   // Check database availability
@@ -30,27 +49,21 @@ export async function GET(request: Request) {
     // Use parameterized queries for safety
     const searchPattern = search ? `%${search}%` : "%";
     const locationPattern = location ? `%${location}%` : "%";
+    const minSalary = salary_min || 0;
 
-    let jobs;
-    let countResult;
+    // Use a single query with COUNT(*) OVER() window function to get total in same query
+    // This eliminates the need for separate count queries
+    let rows: JobRow[];
 
     if (featured) {
-      // Featured jobs query
+      // Featured jobs - always sorted by posted_at DESC
       if (remote_type) {
-        countResult = await sql`
-          SELECT COUNT(*) as total FROM jobs
-          WHERE status = 'active'
-            AND is_featured = true
-            AND (featured_until IS NULL OR featured_until > NOW())
-            AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
-            AND location ILIKE ${locationPattern}
-            AND remote_type = ${remote_type}
-            AND (salary_min IS NULL OR salary_min >= ${salary_min || 0})
-        `;
-        jobs = await sql`
-          SELECT id, title, company_name, company_logo_url, location, remote_type,
-                 salary_min, salary_max, salary_currency, description, apply_url,
-                 is_featured, featured_until, posted_at, source
+        rows = await sql`
+          SELECT
+            id, title, company_name, company_logo_url, location, remote_type,
+            salary_min, salary_max, salary_currency, description, apply_url,
+            is_featured, featured_until, posted_at, source,
+            COUNT(*) OVER() as total_count
           FROM jobs
           WHERE status = 'active'
             AND is_featured = true
@@ -58,144 +71,139 @@ export async function GET(request: Request) {
             AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
             AND location ILIKE ${locationPattern}
             AND remote_type = ${remote_type}
-            AND (salary_min IS NULL OR salary_min >= ${salary_min || 0})
+            AND (salary_min IS NULL OR salary_min >= ${minSalary})
           ORDER BY posted_at DESC
           LIMIT ${limit} OFFSET ${offset}
-        `;
+        ` as unknown as JobRow[];
       } else {
-        countResult = await sql`
-          SELECT COUNT(*) as total FROM jobs
-          WHERE status = 'active'
-            AND is_featured = true
-            AND (featured_until IS NULL OR featured_until > NOW())
-            AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
-            AND location ILIKE ${locationPattern}
-            AND (salary_min IS NULL OR salary_min >= ${salary_min || 0})
-        `;
-        jobs = await sql`
-          SELECT id, title, company_name, company_logo_url, location, remote_type,
-                 salary_min, salary_max, salary_currency, description, apply_url,
-                 is_featured, featured_until, posted_at, source
+        rows = await sql`
+          SELECT
+            id, title, company_name, company_logo_url, location, remote_type,
+            salary_min, salary_max, salary_currency, description, apply_url,
+            is_featured, featured_until, posted_at, source,
+            COUNT(*) OVER() as total_count
           FROM jobs
           WHERE status = 'active'
             AND is_featured = true
             AND (featured_until IS NULL OR featured_until > NOW())
             AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
             AND location ILIKE ${locationPattern}
-            AND (salary_min IS NULL OR salary_min >= ${salary_min || 0})
+            AND (salary_min IS NULL OR salary_min >= ${minSalary})
           ORDER BY posted_at DESC
           LIMIT ${limit} OFFSET ${offset}
-        `;
+        ` as unknown as JobRow[];
       }
     } else {
-      // Regular jobs query with different sort options
+      // Regular jobs - sort by specified order
       if (remote_type) {
-        countResult = await sql`
-          SELECT COUNT(*) as total FROM jobs
-          WHERE status = 'active'
-            AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
-            AND location ILIKE ${locationPattern}
-            AND remote_type = ${remote_type}
-            AND (salary_min IS NULL OR salary_min >= ${salary_min || 0})
-        `;
-
+        // With remote_type filter
         if (sort === "salary-high") {
-          jobs = await sql`
-            SELECT id, title, company_name, company_logo_url, location, remote_type,
-                   salary_min, salary_max, salary_currency, description, apply_url,
-                   is_featured, featured_until, posted_at, source
+          rows = await sql`
+            SELECT
+              id, title, company_name, company_logo_url, location, remote_type,
+              salary_min, salary_max, salary_currency, description, apply_url,
+              is_featured, featured_until, posted_at, source,
+              COUNT(*) OVER() as total_count
             FROM jobs
             WHERE status = 'active'
               AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
               AND location ILIKE ${locationPattern}
               AND remote_type = ${remote_type}
-              AND (salary_min IS NULL OR salary_min >= ${salary_min || 0})
+              AND (salary_min IS NULL OR salary_min >= ${minSalary})
             ORDER BY salary_max DESC NULLS LAST
             LIMIT ${limit} OFFSET ${offset}
-          `;
+          ` as unknown as JobRow[];
         } else if (sort === "salary-low") {
-          jobs = await sql`
-            SELECT id, title, company_name, company_logo_url, location, remote_type,
-                   salary_min, salary_max, salary_currency, description, apply_url,
-                   is_featured, featured_until, posted_at, source
+          rows = await sql`
+            SELECT
+              id, title, company_name, company_logo_url, location, remote_type,
+              salary_min, salary_max, salary_currency, description, apply_url,
+              is_featured, featured_until, posted_at, source,
+              COUNT(*) OVER() as total_count
             FROM jobs
             WHERE status = 'active'
               AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
               AND location ILIKE ${locationPattern}
               AND remote_type = ${remote_type}
-              AND (salary_min IS NULL OR salary_min >= ${salary_min || 0})
+              AND (salary_min IS NULL OR salary_min >= ${minSalary})
             ORDER BY salary_min ASC NULLS LAST
             LIMIT ${limit} OFFSET ${offset}
-          `;
+          ` as unknown as JobRow[];
         } else {
-          jobs = await sql`
-            SELECT id, title, company_name, company_logo_url, location, remote_type,
-                   salary_min, salary_max, salary_currency, description, apply_url,
-                   is_featured, featured_until, posted_at, source
+          rows = await sql`
+            SELECT
+              id, title, company_name, company_logo_url, location, remote_type,
+              salary_min, salary_max, salary_currency, description, apply_url,
+              is_featured, featured_until, posted_at, source,
+              COUNT(*) OVER() as total_count
             FROM jobs
             WHERE status = 'active'
               AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
               AND location ILIKE ${locationPattern}
               AND remote_type = ${remote_type}
-              AND (salary_min IS NULL OR salary_min >= ${salary_min || 0})
+              AND (salary_min IS NULL OR salary_min >= ${minSalary})
             ORDER BY is_featured DESC, posted_at DESC
             LIMIT ${limit} OFFSET ${offset}
-          `;
+          ` as unknown as JobRow[];
         }
       } else {
-        countResult = await sql`
-          SELECT COUNT(*) as total FROM jobs
-          WHERE status = 'active'
-            AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
-            AND location ILIKE ${locationPattern}
-            AND (salary_min IS NULL OR salary_min >= ${salary_min || 0})
-        `;
-
+        // Without remote_type filter
         if (sort === "salary-high") {
-          jobs = await sql`
-            SELECT id, title, company_name, company_logo_url, location, remote_type,
-                   salary_min, salary_max, salary_currency, description, apply_url,
-                   is_featured, featured_until, posted_at, source
+          rows = await sql`
+            SELECT
+              id, title, company_name, company_logo_url, location, remote_type,
+              salary_min, salary_max, salary_currency, description, apply_url,
+              is_featured, featured_until, posted_at, source,
+              COUNT(*) OVER() as total_count
             FROM jobs
             WHERE status = 'active'
               AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
               AND location ILIKE ${locationPattern}
-              AND (salary_min IS NULL OR salary_min >= ${salary_min || 0})
+              AND (salary_min IS NULL OR salary_min >= ${minSalary})
             ORDER BY salary_max DESC NULLS LAST
             LIMIT ${limit} OFFSET ${offset}
-          `;
+          ` as unknown as JobRow[];
         } else if (sort === "salary-low") {
-          jobs = await sql`
-            SELECT id, title, company_name, company_logo_url, location, remote_type,
-                   salary_min, salary_max, salary_currency, description, apply_url,
-                   is_featured, featured_until, posted_at, source
+          rows = await sql`
+            SELECT
+              id, title, company_name, company_logo_url, location, remote_type,
+              salary_min, salary_max, salary_currency, description, apply_url,
+              is_featured, featured_until, posted_at, source,
+              COUNT(*) OVER() as total_count
             FROM jobs
             WHERE status = 'active'
               AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
               AND location ILIKE ${locationPattern}
-              AND (salary_min IS NULL OR salary_min >= ${salary_min || 0})
+              AND (salary_min IS NULL OR salary_min >= ${minSalary})
             ORDER BY salary_min ASC NULLS LAST
             LIMIT ${limit} OFFSET ${offset}
-          `;
+          ` as unknown as JobRow[];
         } else {
-          jobs = await sql`
-            SELECT id, title, company_name, company_logo_url, location, remote_type,
-                   salary_min, salary_max, salary_currency, description, apply_url,
-                   is_featured, featured_until, posted_at, source
+          rows = await sql`
+            SELECT
+              id, title, company_name, company_logo_url, location, remote_type,
+              salary_min, salary_max, salary_currency, description, apply_url,
+              is_featured, featured_until, posted_at, source,
+              COUNT(*) OVER() as total_count
             FROM jobs
             WHERE status = 'active'
               AND (title ILIKE ${searchPattern} OR company_name ILIKE ${searchPattern})
               AND location ILIKE ${locationPattern}
-              AND (salary_min IS NULL OR salary_min >= ${salary_min || 0})
+              AND (salary_min IS NULL OR salary_min >= ${minSalary})
             ORDER BY is_featured DESC, posted_at DESC
             LIMIT ${limit} OFFSET ${offset}
-          `;
+          ` as unknown as JobRow[];
         }
       }
     }
 
-    const total = parseInt(String((countResult[0] as { total?: string })?.total || "0"));
+    // Extract total count from first row (same for all rows due to window function)
+    const total = rows.length > 0 ? parseInt(rows[0].total_count, 10) : 0;
     const totalPages = Math.ceil(total / limit);
+
+    // Remove total_count from response (internal field)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const jobs = rows.map(({ total_count, ...job }) => job);
 
     // Add cache headers for CDN
     const response = NextResponse.json({
@@ -223,3 +231,4 @@ export async function GET(request: Request) {
     );
   }
 }
+
