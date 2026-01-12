@@ -3,19 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import {
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Linkedin,
-  Globe,
   Shield,
   CheckCircle2,
   Upload,
   Save,
   ArrowRight,
 } from "lucide-react";
-import { Input, Textarea, Select, Checkbox } from "@/components/ui/input";
+import { Input, Textarea, Checkbox } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 export default function ProfilePage() {
@@ -32,7 +26,7 @@ export default function ProfilePage() {
     bio: "I'm a highly motivated individual looking for my first opportunity in tech sales. I'm willing to work hard, learn fast, and relocate anywhere for the right opportunity.",
   });
 
-  const [pledgeStatus, setPledgeStatus] = useState({
+  const [pledgeStatus] = useState({
     signed: true,
     date: "January 5, 2025",
     commitments: {

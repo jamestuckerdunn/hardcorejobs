@@ -5,19 +5,15 @@ import {
   GraduationCap,
   Briefcase,
   MapPin,
-  Clock,
-  Users,
   Target,
   Zap,
   Shield,
   TrendingUp,
-  Award,
   ChevronRight,
   Star,
   Building2,
   Globe,
   CheckCircle2,
-  Play,
 } from "lucide-react";
 
 // Sample featured jobs for preview

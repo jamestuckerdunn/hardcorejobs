@@ -62,7 +62,7 @@ export function FeaturedBadge() {
   );
 }
 
-export function SalaryBadge({ min, max, currency = "USD" }: { min?: number; max?: number; currency?: string }) {
+export function SalaryBadge({ min, max, currency: _currency = "USD" }: { min?: number; max?: number; currency?: string }) {
   const formatSalary = (amount: number) => {
     if (amount >= 1000) {
       return `$${Math.round(amount / 1000)}K`;

@@ -167,9 +167,9 @@ export default async function JobDetailPage({
   }
 
   const postedDate = new Date(job.posted_at);
-  const expiresDate = new Date(job.expires_at);
+  const currentDate = new Date();
   const daysAgo = Math.floor(
-    (Date.now() - postedDate.getTime()) / (1000 * 60 * 60 * 24)
+    (currentDate.getTime() - postedDate.getTime()) / (1000 * 60 * 60 * 24)
   );
 
   return (
