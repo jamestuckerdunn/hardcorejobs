@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HARDCOREJOBS
 
-## Getting Started
+High-paying job board ($100K+) for motivated candidates who don't require a degree or prior experience.
 
-First, run the development server:
+## Tech Stack
+
+- **Framework**: Next.js 16 with App Router
+- **Authentication**: Clerk
+- **Database**: Neon PostgreSQL (serverless)
+- **Styling**: Tailwind CSS v4
+- **Language**: TypeScript (strict mode)
+
+## Prerequisites
+
+- Node.js 18+
+- npm or yarn
+- Neon PostgreSQL database
+- Clerk account for authentication
+
+## Installation
+
+```bash
+npm install
+```
+
+## Environment Setup
+
+Copy the example environment file and fill in your values:
+
+```bash
+cp .env.example .env.local
+```
+
+Required environment variables:
+- `POSTGRES_URL` - Neon database connection string
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - Clerk public key
+- `CLERK_SECRET_KEY` - Clerk secret key
+
+See [.env.example](./.env.example) for all available options.
+
+## Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run start` | Start production server |
+| `npm run lint` | Run ESLint |
+| `npm run lint:fix` | Fix ESLint errors |
+| `npm run type-check` | Run TypeScript type checking |
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+├── app/                    # Next.js App Router pages
+│   ├── (auth)/            # Authentication routes
+│   ├── api/               # API routes
+│   ├── dashboard/         # Dashboard pages
+│   ├── jobs/              # Job listing pages
+│   └── ...
+├── components/
+│   ├── jobs/              # Job-related components
+│   ├── layout/            # Layout components (header, footer)
+│   └── ui/                # Reusable UI components
+├── lib/
+│   └── db/                # Database utilities
+└── public/                # Static assets
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Database Setup
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Run the migration endpoint to set up the database schema:
 
-## Deploy on Vercel
+```bash
+curl -X POST http://localhost:3000/api/db/migrate
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deployment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deploy to Vercel:
+
+```bash
+vercel
+```
+
+Or see the [Next.js deployment documentation](https://nextjs.org/docs/deployment).
+
+## License
+
+Private - All rights reserved
