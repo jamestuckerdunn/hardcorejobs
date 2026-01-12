@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { clsx } from "clsx";
 import {
   MapPin,
@@ -80,10 +81,13 @@ export function JobCard({
       <div className="flex items-start gap-4">
         {/* Company Logo */}
         {job.company_logo_url ? (
-          <img
+          <Image
             src={job.company_logo_url}
             alt={`${job.company_name} logo`}
+            width={48}
+            height={48}
             className="h-12 w-12 shrink-0 object-contain bg-neutral-900"
+            unoptimized
           />
         ) : (
           <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-neutral-900 text-lg font-bold text-neutral-600">
@@ -178,55 +182,6 @@ export function JobCard({
   );
 }
 
-// Compact version for lists/sidebars
-interface JobCardCompactProps {
-  job: Job;
-  className?: string;
-}
-
-export function JobCardCompact({ job, className }: JobCardCompactProps) {
-  return (
-    <Link
-      href={`/jobs/${job.id}`}
-      className={clsx(
-        "block border border-neutral-800 p-4 transition-all duration-200",
-        "hover:border-neutral-600 hover:bg-neutral-950",
-        className
-      )}
-    >
-      <div className="flex items-center gap-3">
-        {job.company_logo_url ? (
-          <img
-            src={job.company_logo_url}
-            alt=""
-            className="h-8 w-8 shrink-0 object-contain bg-neutral-900"
-          />
-        ) : (
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-neutral-900 text-sm font-bold text-neutral-600">
-            {job.company_name.charAt(0)}
-          </div>
-        )}
-        <div className="min-w-0">
-          <p className="font-semibold text-white truncate">{job.title}</p>
-          <p className="text-xs text-neutral-500 truncate">{job.company_name}</p>
-        </div>
-        {job.is_featured && (
-          <Zap className="h-4 w-4 shrink-0 text-amber-500 ml-auto" />
-        )}
-      </div>
-      <div className="mt-2 flex items-center gap-2">
-        {job.salary_min && (
-          <span className="text-xs font-medium text-emerald-400">
-            ${Math.round(job.salary_min / 1000)}K+
-          </span>
-        )}
-        <span className="text-xs text-neutral-600">•</span>
-        <span className="text-xs text-neutral-500">{job.location}</span>
-      </div>
-    </Link>
-  );
-}
-
 // Featured job card with more prominent styling
 interface FeaturedJobCardProps {
   job: Job;
@@ -246,10 +201,13 @@ export function FeaturedJobCard({ job, onSave, isSaved }: FeaturedJobCardProps) 
 
       <div className="flex items-start gap-6">
         {job.company_logo_url ? (
-          <img
+          <Image
             src={job.company_logo_url}
             alt={`${job.company_name} logo`}
+            width={64}
+            height={64}
             className="h-16 w-16 shrink-0 object-contain bg-neutral-900"
+            unoptimized
           />
         ) : (
           <div className="flex h-16 w-16 shrink-0 items-center justify-center bg-neutral-900 text-2xl font-bold text-neutral-600">

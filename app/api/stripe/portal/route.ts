@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 import { createCustomerPortalSession, hasStripe } from "@/lib/stripe";
 import { getAppUrl } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 export async function POST() {
   const APP_URL = getAppUrl();
@@ -43,7 +44,7 @@ export async function POST() {
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
-    console.error("Portal error:", error);
+    logger.error("Failed to create portal session", error);
     return NextResponse.json(
       { error: "Failed to create portal session" },
       { status: 500 }

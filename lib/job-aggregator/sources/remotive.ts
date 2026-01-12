@@ -1,4 +1,5 @@
 import { AggregatedJob } from "../types";
+import { logger } from "../../logger";
 
 const BASE_URL = "https://remotive.com/api/remote-jobs";
 
@@ -77,7 +78,7 @@ export async function fetchRemotiveJobs(): Promise<AggregatedJob[]> {
       const response = await fetch(url);
 
       if (!response.ok) {
-        console.error(`Remotive API error: ${response.status}`);
+        logger.warn("Remotive API error", { status: response.status });
         continue;
       }
 
@@ -110,7 +111,7 @@ export async function fetchRemotiveJobs(): Promise<AggregatedJob[]> {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
   } catch (error) {
-    console.error("Error fetching from Remotive:", error);
+    logger.error("Error fetching from Remotive", error);
   }
 
   return jobs;

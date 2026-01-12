@@ -1,9 +1,5 @@
 import { z } from "zod";
 
-// Common validation patterns
-const uuidSchema = z.string().uuid();
-const urlSchema = z.string().url();
-
 // Jobs API validation
 export const jobsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -18,50 +14,13 @@ export const jobsQuerySchema = z.object({
 
 export type JobsQuery = z.infer<typeof jobsQuerySchema>;
 
-// Job ID validation
-export const jobIdSchema = z.object({
-  id: uuidSchema,
-});
-
 // Stripe checkout validation
 export const checkoutSchema = z.object({
   type: z.enum(["featured_job", "resume_subscription"]),
-  jobId: uuidSchema.optional(),
+  jobId: z.string().uuid().optional(),
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
-
-// Profile validation
-export const profileSchema = z.object({
-  fullName: z.string().min(1).max(100),
-  headline: z.string().max(200).optional(),
-  location: z.string().max(100).optional(),
-  willingToRelocate: z.boolean().default(true),
-  phone: z.string().max(20).optional(),
-  linkedinUrl: urlSchema.optional().or(z.literal("")),
-  portfolioUrl: urlSchema.optional().or(z.literal("")),
-});
-
-export type ProfileInput = z.infer<typeof profileSchema>;
-
-// Job application validation
-export const applicationSchema = z.object({
-  jobId: uuidSchema,
-  coverLetter: z.string().max(5000).optional(),
-});
-
-export type ApplicationInput = z.infer<typeof applicationSchema>;
-
-// Job alert validation
-export const jobAlertSchema = z.object({
-  keywords: z.array(z.string().max(50)).max(10).optional(),
-  locations: z.array(z.string().max(100)).max(5).optional(),
-  minSalary: z.number().int().min(0).optional(),
-  remoteOnly: z.boolean().default(false),
-  frequency: z.enum(["instant", "daily", "weekly"]).default("daily"),
-});
-
-export type JobAlertInput = z.infer<typeof jobAlertSchema>;
 
 // Helper function to parse and validate request body
 export async function parseBody<T>(

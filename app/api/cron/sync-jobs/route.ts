@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { aggregateJobs } from "@/lib/job-aggregator";
+import { logger } from "@/lib/logger";
 
 /**
  * Cron endpoint to sync jobs from all sources
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
   // In production, ALWAYS require CRON_SECRET
   if (isProduction) {
     if (!cronSecret) {
-      console.error("CRON_SECRET not configured in production");
+      logger.error("CRON_SECRET not configured in production");
       return NextResponse.json(
         { error: "Server misconfiguration" },
         { status: 500 }
@@ -31,14 +32,14 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    console.log("Starting scheduled job sync...");
+    logger.info("Starting scheduled job sync");
     const startTime = Date.now();
 
     const result = await aggregateJobs();
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
 
-    console.log("Job sync completed:", {
+    logger.info("Job sync completed", {
       ...result,
       duration: `${duration}s`,
     });
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
       errors: result.errors.length > 0 ? result.errors : undefined,
     });
   } catch (error) {
-    console.error("Job sync failed:", error);
+    logger.error("Job sync failed", error);
 
     return NextResponse.json(
       {

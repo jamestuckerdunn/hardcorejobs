@@ -1,6 +1,7 @@
 import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { sanitizeHtml } from "@/lib/sanitize";
+import { logger } from "@/lib/logger";
 
 interface JobRecord {
   id: string;
@@ -97,7 +98,7 @@ export async function GET(
 
     return response;
   } catch (error) {
-    console.error("Error fetching job:", error);
+    logger.error("Failed to fetch job", error);
     return NextResponse.json(
       { error: "Failed to fetch job" },
       { status: 500 }

@@ -1,6 +1,7 @@
 import { sql, isDatabaseAvailable } from "@/lib/db";
 import { NextResponse } from "next/server";
 import { jobsQuerySchema, parseQuery, formatZodError } from "@/lib/validations";
+import { logger } from "@/lib/logger";
 
 interface JobRow {
   id: string;
@@ -222,7 +223,7 @@ export async function GET(request: Request) {
 
     return response;
   } catch (error) {
-    console.error("Error fetching jobs:", error);
+    logger.error("Failed to fetch jobs", error);
 
     // Don't expose internal error details
     return NextResponse.json(

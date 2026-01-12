@@ -1,6 +1,6 @@
 import { clsx } from "clsx";
 import Link from "next/link";
-import { Briefcase, Search, Heart, FileText, Bell, AlertCircle } from "lucide-react";
+import { Search, AlertCircle } from "lucide-react";
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -67,50 +67,6 @@ export function NoJobsFound() {
       title="No Jobs Found"
       description="We couldn't find any jobs matching your search criteria. Try adjusting your filters or search terms."
       action={{ label: "Clear Filters", href: "/jobs" }}
-    />
-  );
-}
-
-export function NoSavedJobs() {
-  return (
-    <EmptyState
-      icon={<Heart className="h-8 w-8" />}
-      title="No Saved Jobs"
-      description="You haven't saved any jobs yet. Browse jobs and click the heart icon to save them for later."
-      action={{ label: "Browse Jobs", href: "/jobs" }}
-    />
-  );
-}
-
-export function NoApplications() {
-  return (
-    <EmptyState
-      icon={<Briefcase className="h-8 w-8" />}
-      title="No Applications"
-      description="You haven't applied to any jobs yet. Start browsing and apply to positions that match your skills."
-      action={{ label: "Find Jobs", href: "/jobs" }}
-    />
-  );
-}
-
-export function NoResume() {
-  return (
-    <EmptyState
-      icon={<FileText className="h-8 w-8" />}
-      title="No Resume Uploaded"
-      description="Upload your resume to make it easier to apply to jobs and let employers find you."
-      action={{ label: "Upload Resume", href: "/profile/resume" }}
-    />
-  );
-}
-
-export function NoAlerts() {
-  return (
-    <EmptyState
-      icon={<Bell className="h-8 w-8" />}
-      title="No Job Alerts"
-      description="Set up job alerts to get notified when new positions matching your criteria are posted."
-      action={{ label: "Create Alert", href: "/dashboard/alerts/new" }}
     />
   );
 }

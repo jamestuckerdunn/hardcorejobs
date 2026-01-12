@@ -1,5 +1,6 @@
 import { AggregatedJob } from "../types";
 import { determineRemoteType } from "../filters";
+import { logger } from "../../logger";
 
 const BASE_URL = "https://www.arbeitnow.com/api/job-board-api";
 
@@ -41,7 +42,7 @@ export async function fetchArbeitnowJobs(): Promise<AggregatedJob[]> {
       const response = await fetch(url);
 
       if (!response.ok) {
-        console.error(`Arbeitnow API error: ${response.status}`);
+        logger.warn("Arbeitnow API error", { status: response.status });
         break;
       }
 
@@ -78,7 +79,7 @@ export async function fetchArbeitnowJobs(): Promise<AggregatedJob[]> {
       await new Promise((resolve) => setTimeout(resolve, 200));
     }
   } catch (error) {
-    console.error("Error fetching from Arbeitnow:", error);
+    logger.error("Error fetching from Arbeitnow", error);
   }
 
   return jobs;

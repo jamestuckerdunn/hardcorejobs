@@ -1,5 +1,6 @@
 import { AggregatedJob } from "../types";
 import { determineRemoteType } from "../filters";
+import { logger } from "../../logger";
 
 const BASE_URL = "https://www.themuse.com/api/public/jobs";
 const API_KEY = process.env.THEMUSE_API_KEY || ""; // Optional - higher rate limits with key
@@ -58,7 +59,7 @@ export async function fetchTheMuseJobs(): Promise<AggregatedJob[]> {
       const response = await fetch(url.toString());
 
       if (!response.ok) {
-        console.error(`The Muse API error: ${response.status}`);
+        logger.warn("The Muse API error", { status: response.status });
         continue;
       }
 
@@ -92,7 +93,7 @@ export async function fetchTheMuseJobs(): Promise<AggregatedJob[]> {
       await new Promise((resolve) => setTimeout(resolve, 200));
     }
   } catch (error) {
-    console.error("Error fetching from The Muse:", error);
+    logger.error("Error fetching from The Muse", error);
   }
 
   return jobs;

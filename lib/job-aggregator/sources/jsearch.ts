@@ -1,5 +1,6 @@
 import { AggregatedJob } from "../types";
 import { determineRemoteType } from "../filters";
+import { logger } from "../../logger";
 
 const RAPIDAPI_KEY = process.env.RAPIDAPI_KEY;
 const BASE_URL = "https://jsearch.p.rapidapi.com/search";
@@ -46,7 +47,7 @@ interface JSearchResponse {
  */
 export async function fetchJSearchJobs(): Promise<AggregatedJob[]> {
   if (!RAPIDAPI_KEY) {
-    console.log("RapidAPI key not configured, skipping JSearch...");
+    logger.debug("RapidAPI key not configured, skipping JSearch");
     return [];
   }
 
@@ -78,7 +79,7 @@ export async function fetchJSearchJobs(): Promise<AggregatedJob[]> {
       });
 
       if (!response.ok) {
-        console.error(`JSearch API error: ${response.status}`);
+        logger.warn("JSearch API error", { status: response.status });
         continue;
       }
 
@@ -141,7 +142,7 @@ export async function fetchJSearchJobs(): Promise<AggregatedJob[]> {
       await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   } catch (error) {
-    console.error("Error fetching from JSearch:", error);
+    logger.error("Error fetching from JSearch", error);
   }
 
   return jobs;

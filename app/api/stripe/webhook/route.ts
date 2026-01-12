@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
 import { sql } from "@/lib/db";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: Request) {
   const body = await request.text();
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
   try {
     event = getStripe().webhooks.constructEvent(body, signature, webhookSecret);
   } catch (err) {
-    console.error("Webhook signature verification failed:", err);
+    logger.error("Webhook signature verification failed", err);
     return NextResponse.json(
       { error: "Webhook signature verification failed" },
       { status: 400 }
@@ -64,12 +65,12 @@ export async function POST(request: Request) {
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        logger.debug("Unhandled webhook event type", { eventType: event.type });
     }
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error("Webhook handler error:", error);
+    logger.error("Webhook handler failed", error);
     return NextResponse.json(
       { error: "Webhook handler failed" },
       { status: 500 }
@@ -81,7 +82,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   const { employer_id, job_id, type } = session.metadata || {};
 
   if (!employer_id || !type) {
-    console.error("Missing metadata in checkout session");
+    logger.error("Missing metadata in checkout session");
     return;
   }
 
@@ -194,7 +195,7 @@ async function handleInvoiceFailed(invoice: Stripe.Invoice) {
   const customerId = invoice.customer as string;
 
   // Log the failure - in production, you'd want to send an email notification
-  console.error(`Payment failed for customer ${customerId}`);
+  logger.error("Payment failed for customer", undefined, { customerId });
 
   // Use invoice ID as payment reference
   const paymentRef = invoice.id;

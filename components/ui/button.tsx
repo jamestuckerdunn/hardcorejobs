@@ -1,6 +1,5 @@
 import { clsx } from "clsx";
 import { Loader2 } from "lucide-react";
-import Link from "next/link";
 import { forwardRef } from "react";
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -72,75 +71,3 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = "Button";
-
-interface LinkButtonProps {
-  href: string;
-  variant?: "primary" | "secondary" | "ghost" | "danger";
-  size?: "sm" | "md" | "lg";
-  leftIcon?: React.ReactNode;
-  rightIcon?: React.ReactNode;
-  className?: string;
-  children: React.ReactNode;
-}
-
-export function LinkButton({
-  href,
-  variant = "primary",
-  size = "md",
-  leftIcon,
-  rightIcon,
-  className,
-  children,
-}: LinkButtonProps) {
-  return (
-    <Link
-      href={href}
-      className={clsx(
-        "inline-flex items-center justify-center font-semibold uppercase tracking-wider",
-        "border-2 transition-all duration-150",
-        variantStyles[variant],
-        sizeStyles[size],
-        className
-      )}
-    >
-      {leftIcon && <span className="mr-2">{leftIcon}</span>}
-      {children}
-      {rightIcon && <span className="ml-2">{rightIcon}</span>}
-    </Link>
-  );
-}
-
-interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost";
-  size?: "sm" | "md" | "lg";
-  label: string;
-}
-
-const iconSizeStyles = {
-  sm: "p-1.5",
-  md: "p-2",
-  lg: "p-3",
-};
-
-export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
-  ({ variant = "ghost", size = "md", label, className, children, ...props }, ref) => {
-    return (
-      <button
-        ref={ref}
-        aria-label={label}
-        className={clsx(
-          "inline-flex items-center justify-center",
-          "border-2 transition-all duration-150",
-          variantStyles[variant],
-          iconSizeStyles[size],
-          className
-        )}
-        {...props}
-      >
-        {children}
-      </button>
-    );
-  }
-);
-
-IconButton.displayName = "IconButton";

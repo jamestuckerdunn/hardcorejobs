@@ -1,7 +1,12 @@
 import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
+import { API } from "@/lib/constants";
 
-// GET /api/jobs/featured - Get featured jobs
+/**
+ * GET /api/jobs/featured
+ * Returns featured job listings for homepage display.
+ */
 export async function GET() {
   try {
     const jobs = await sql`
@@ -25,12 +30,12 @@ export async function GET() {
         AND is_featured = true
         AND (featured_until IS NULL OR featured_until > NOW())
       ORDER BY posted_at DESC
-      LIMIT 10
+      LIMIT ${API.MAX_FEATURED_JOBS}
     `;
 
     return NextResponse.json({ jobs });
   } catch (error) {
-    console.error("Error fetching featured jobs:", error);
+    logger.error("Failed to fetch featured jobs", error);
     return NextResponse.json(
       { error: "Failed to fetch featured jobs" },
       { status: 500 }

@@ -1,5 +1,6 @@
 import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 // This endpoint runs database migrations
 // Protect with a secret key via Authorization header
@@ -199,7 +200,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, message: "Migrations completed" });
   } catch (error) {
-    console.error("Migration error:", error);
+    logger.error("Migration failed", error);
     return NextResponse.json(
       { error: "Migration failed" },
       { status: 500 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
@@ -125,10 +126,13 @@ export default async function JobDetailPage({
 
               <div className="flex items-start gap-6">
                 {job.company_logo_url ? (
-                  <img
+                  <Image
                     src={job.company_logo_url}
                     alt={job.company_name}
+                    width={64}
+                    height={64}
                     className="h-16 w-16 shrink-0 object-contain bg-neutral-900"
+                    unoptimized
                   />
                 ) : (
                   <div className="flex h-16 w-16 shrink-0 items-center justify-center bg-neutral-900 text-2xl font-bold text-neutral-600">
@@ -280,10 +284,13 @@ export default async function JobDetailPage({
               </h3>
               <div className="flex items-center gap-4 mb-4">
                 {job.company_logo_url ? (
-                  <img
+                  <Image
                     src={job.company_logo_url}
                     alt={job.company_name}
+                    width={48}
+                    height={48}
                     className="h-12 w-12 object-contain bg-neutral-900"
+                    unoptimized
                   />
                 ) : (
                   <div className="flex h-12 w-12 items-center justify-center bg-neutral-900 text-lg font-bold text-neutral-600">

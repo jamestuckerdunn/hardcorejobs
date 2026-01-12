@@ -10,10 +10,9 @@ import {
   Shield,
   TrendingUp,
   ChevronRight,
-  Star,
-  Building2,
   Globe,
   CheckCircle2,
+  Building2,
 } from "lucide-react";
 import { getAppUrl } from "@/lib/env";
 
@@ -31,7 +30,7 @@ interface FeaturedJob {
 async function getFeaturedJobs(): Promise<FeaturedJob[]> {
   try {
     const response = await fetch(`${getAppUrl()}/api/jobs?featured=true&limit=3`, {
-      next: { revalidate: 300 }, // Cache for 5 minutes
+      next: { revalidate: 300 },
     });
 
     if (!response.ok) {
@@ -55,63 +54,24 @@ function formatSalary(min?: number, max?: number): string {
 export default async function Home() {
   const featuredJobs = await getFeaturedJobs();
 
-  // Fallback jobs if none in database yet
-  const displayJobs = featuredJobs.length > 0 ? featuredJobs : [
-    {
-      id: "demo-1",
-      title: "Sales Development Representative",
-      company_name: "TechFlow Inc",
-      location: "Remote",
-      salary_min: 120000,
-      salary_max: 150000,
-      remote_type: "remote" as const,
-      is_featured: true,
-    },
-    {
-      id: "demo-2",
-      title: "Field Service Technician",
-      company_name: "PowerGrid Systems",
-      location: "Austin, TX",
-      salary_min: 110000,
-      salary_max: 140000,
-      remote_type: "onsite" as const,
-      is_featured: true,
-    },
-    {
-      id: "demo-3",
-      title: "Insurance Sales Agent",
-      company_name: "SecureLife",
-      location: "Chicago, IL",
-      salary_min: 100000,
-      salary_max: 200000,
-      remote_type: "hybrid" as const,
-      is_featured: false,
-    },
-  ];
-
   return (
     <div className="bg-black">
       {/* Hero Section */}
       <section className="relative overflow-hidden border-b border-neutral-800">
-        {/* Animated background gradient */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-gradient-to-br from-neutral-900 via-black to-black" />
           <div className="absolute top-0 left-1/4 w-96 h-96 bg-white/5 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-white/3 rounded-full blur-3xl animate-pulse delay-1000" />
         </div>
-
-        {/* Grid background */}
         <div className="absolute inset-0 -z-10 opacity-20 bg-grid" />
 
         <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32 lg:px-8 lg:py-40">
           <div className="mx-auto max-w-4xl text-center">
-            {/* Badge */}
             <div className="mb-8 inline-flex items-center gap-2 border border-neutral-800 bg-neutral-900/50 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-neutral-400 animate-fade-down">
               <Zap className="h-3 w-3 text-amber-500" aria-hidden="true" />
-              <span>500+ Jobs Available Now</span>
+              <span>High-Paying Jobs Available Now</span>
             </div>
 
-            {/* Main headline */}
             <h1 className="text-5xl font-black uppercase tracking-tight text-white sm:text-7xl lg:text-8xl animate-fade-up">
               <span className="block">$100K+ Jobs</span>
               <span className="block mt-2 bg-gradient-to-r from-white via-neutral-400 to-white bg-clip-text text-transparent animate-text-gradient">
@@ -125,7 +85,6 @@ export default async function Home() {
               anywhere.
             </p>
 
-            {/* CTA Buttons */}
             <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row animate-fade-up delay-300">
               <Link
                 href="/jobs"
@@ -142,7 +101,6 @@ export default async function Home() {
               </Link>
             </div>
 
-            {/* Trust indicators */}
             <div className="mt-12 flex flex-wrap items-center justify-center gap-8 text-sm text-neutral-500 animate-fade-up delay-500">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-500" aria-hidden="true" />
@@ -162,78 +120,80 @@ export default async function Home() {
       </section>
 
       {/* Featured Jobs Preview */}
-      <section className="border-b border-neutral-800 py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-12">
-            <div>
-              <h2 className="text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
-                Featured Jobs
-              </h2>
-              <p className="mt-2 text-neutral-400">
-                Hand-picked opportunities with top employers
-              </p>
-            </div>
-            <Link
-              href="/jobs"
-              className="hidden sm:flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-white hover:text-neutral-300 transition-colors"
-            >
-              View All Jobs
-              <ChevronRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" role="list" aria-label="Featured job listings">
-            {displayJobs.map((job, i) => (
+      {featuredJobs.length > 0 && (
+        <section className="border-b border-neutral-800 py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex items-end justify-between mb-12">
+              <div>
+                <h2 className="text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
+                  Featured Jobs
+                </h2>
+                <p className="mt-2 text-neutral-400">
+                  Hand-picked opportunities with top employers
+                </p>
+              </div>
               <Link
-                key={job.id}
-                href={`/jobs/${job.id}`}
-                className={`group card card-lift p-6 ${
-                  job.is_featured ? "border-amber-900/50 bg-amber-950/10" : ""
-                }`}
-                style={{ animationDelay: `${i * 100}ms` }}
-                role="listitem"
+                href="/jobs"
+                className="hidden sm:flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-white hover:text-neutral-300 transition-colors"
               >
-                {job.is_featured && (
-                  <div className="mb-4 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-amber-500">
-                    <Zap className="h-3 w-3" aria-hidden="true" />
-                    Featured
-                  </div>
-                )}
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-neutral-900 text-lg font-bold text-neutral-600" aria-hidden="true">
-                    {job.company_name.charAt(0)}
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-bold text-white group-hover:underline truncate">
-                      {job.title}
-                    </h3>
-                    <p className="text-sm text-neutral-400">{job.company_name}</p>
-                  </div>
-                </div>
-                <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1 bg-emerald-950 px-2 py-1 text-xs font-medium text-emerald-400">
-                    {formatSalary(job.salary_min, job.salary_max)}
-                  </span>
-                  <span className="inline-flex items-center gap-1 bg-neutral-900 px-2 py-1 text-xs font-medium text-neutral-400">
-                    <MapPin className="h-3 w-3" aria-hidden="true" />
-                    {job.location}
-                  </span>
-                </div>
+                View All Jobs
+                <ChevronRight className="h-4 w-4" aria-hidden="true" />
               </Link>
-            ))}
-          </div>
+            </div>
 
-          <div className="mt-8 text-center sm:hidden">
-            <Link
-              href="/jobs"
-              className="btn btn-secondary px-6 py-3 text-sm"
-            >
-              View All Jobs
-              <ChevronRight className="ml-2 h-4 w-4" aria-hidden="true" />
-            </Link>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" role="list" aria-label="Featured job listings">
+              {featuredJobs.map((job, i) => (
+                <Link
+                  key={job.id}
+                  href={`/jobs/${job.id}`}
+                  className={`group card card-lift p-6 ${
+                    job.is_featured ? "border-amber-900/50 bg-amber-950/10" : ""
+                  }`}
+                  style={{ animationDelay: `${i * 100}ms` }}
+                  role="listitem"
+                >
+                  {job.is_featured && (
+                    <div className="mb-4 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-amber-500">
+                      <Zap className="h-3 w-3" aria-hidden="true" />
+                      Featured
+                    </div>
+                  )}
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-neutral-900 text-lg font-bold text-neutral-600" aria-hidden="true">
+                      {job.company_name.charAt(0)}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-bold text-white group-hover:underline truncate">
+                        {job.title}
+                      </h3>
+                      <p className="text-sm text-neutral-400">{job.company_name}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1 bg-emerald-950 px-2 py-1 text-xs font-medium text-emerald-400">
+                      {formatSalary(job.salary_min, job.salary_max)}
+                    </span>
+                    <span className="inline-flex items-center gap-1 bg-neutral-900 px-2 py-1 text-xs font-medium text-neutral-400">
+                      <MapPin className="h-3 w-3" aria-hidden="true" />
+                      {job.location}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            <div className="mt-8 text-center sm:hidden">
+              <Link
+                href="/jobs"
+                className="btn btn-secondary px-6 py-3 text-sm"
+              >
+                View All Jobs
+                <ChevronRight className="ml-2 h-4 w-4" aria-hidden="true" />
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Value Props */}
       <section className="border-b border-neutral-800 py-24">
@@ -294,46 +254,6 @@ export default async function Home() {
               </h3>
               <p className="mt-3 text-sm text-neutral-400">
                 Work from anywhere or relocate for the right opportunity.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="border-b border-neutral-800 bg-neutral-950 py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-8 text-center md:grid-cols-4">
-            <div className="group">
-              <p className="text-5xl font-black text-white sm:text-6xl group-hover:scale-110 transition-transform">
-                500<span className="text-neutral-600">+</span>
-              </p>
-              <p className="mt-3 text-sm uppercase tracking-wider text-neutral-500">
-                Active Jobs
-              </p>
-            </div>
-            <div className="group">
-              <p className="text-5xl font-black text-white sm:text-6xl group-hover:scale-110 transition-transform">
-                $127K
-              </p>
-              <p className="mt-3 text-sm uppercase tracking-wider text-neutral-500">
-                Average Salary
-              </p>
-            </div>
-            <div className="group">
-              <p className="text-5xl font-black text-white sm:text-6xl group-hover:scale-110 transition-transform">
-                10K<span className="text-neutral-600">+</span>
-              </p>
-              <p className="mt-3 text-sm uppercase tracking-wider text-neutral-500">
-                Hardcore Job Seekers
-              </p>
-            </div>
-            <div className="group">
-              <p className="text-5xl font-black text-white sm:text-6xl group-hover:scale-110 transition-transform">
-                48<span className="text-neutral-600">hrs</span>
-              </p>
-              <p className="mt-3 text-sm uppercase tracking-wider text-neutral-500">
-                Avg Time to Interview
               </p>
             </div>
           </div>
@@ -479,72 +399,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="border-b border-neutral-800 py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
-              Success Stories
-            </h2>
-            <p className="mt-4 text-neutral-400">
-              Real people who went from zero experience to six-figure careers
-            </p>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-3">
-            {[
-              {
-                quote:
-                  "I was working retail making $35K. Now I'm a sales rep making $140K. The pledge opened doors I didn't know existed.",
-                name: "Marcus Johnson",
-                role: "Sales Representative",
-                company: "TechFlow Inc",
-              },
-              {
-                quote:
-                  "No CS degree, no bootcamp. Just hustle. HARDCOREJOBS connected me with a company that valued my drive over credentials.",
-                name: "Sarah Kim",
-                role: "Customer Success Manager",
-                company: "CloudBase",
-              },
-              {
-                quote:
-                  "I relocated from Ohio to Austin for my first tech job. Best decision I ever made. $120K right out of the gate.",
-                name: "David Chen",
-                role: "Field Engineer",
-                company: "PowerGrid Systems",
-              },
-            ].map((testimonial, i) => (
-              <article key={i} className="card p-8 hover-lift">
-                <div className="flex gap-1 mb-4" aria-label="5 star rating">
-                  {[...Array(5)].map((_, j) => (
-                    <Star
-                      key={j}
-                      className="h-4 w-4 fill-amber-500 text-amber-500"
-                      aria-hidden="true"
-                    />
-                  ))}
-                </div>
-                <blockquote className="text-neutral-300 italic">
-                  &ldquo;{testimonial.quote}&rdquo;
-                </blockquote>
-                <div className="mt-6 flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center bg-neutral-800 text-lg font-bold text-white" aria-hidden="true">
-                    {testimonial.name.charAt(0)}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-white">{testimonial.name}</p>
-                    <p className="text-sm text-neutral-500">
-                      {testimonial.role}, {testimonial.company}
-                    </p>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* For Employers */}
       <section className="border-b border-neutral-800 py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -568,7 +422,6 @@ export default async function Home() {
                   "Access resume database for $199/mo",
                   "Filter by pledge commitment level",
                   "No credential gatekeeping",
-                  "48-hour average response time",
                 ].map((item, i) => (
                   <li key={i} className="flex items-center gap-3 text-neutral-300">
                     <span className="flex h-6 w-6 items-center justify-center bg-white text-xs font-bold text-black" aria-hidden="true">
@@ -595,42 +448,45 @@ export default async function Home() {
             </div>
 
             <div className="card p-8 lg:p-12">
-              <blockquote className="text-xl italic text-neutral-300">
-                &ldquo;We&apos;ve hired three people through HARDCOREJOBS. All of them
-                outperform candidates we&apos;ve found through traditional
-                channels. The pledge means something.&rdquo;
-              </blockquote>
-              <div className="mt-8 flex items-center gap-4">
-                <div className="h-14 w-14 bg-neutral-800 flex items-center justify-center text-xl font-bold" aria-hidden="true">
-                  S
-                </div>
-                <div>
-                  <p className="font-semibold text-white">Sarah Chen</p>
-                  <p className="text-sm text-neutral-500">
-                    VP of Engineering, TechCorp
+              <h3 className="text-xl font-bold text-white mb-4">
+                Why Hire Through HARDCOREJOBS?
+              </h3>
+              <p className="text-neutral-400 mb-8">
+                Our pledge-takers are pre-screened for commitment and drive.
+                They&apos;re ready to relocate, work hard, and stay for the long term.
+              </p>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="text-center">
+                  <div className="flex h-12 w-12 mx-auto items-center justify-center bg-emerald-950 text-emerald-400">
+                    <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
+                  </div>
+                  <p className="mt-3 text-sm text-neutral-400">
+                    Pre-screened candidates
                   </p>
                 </div>
-              </div>
-              <div className="mt-8 pt-8 border-t border-neutral-800">
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <p className="text-2xl font-black text-white">47%</p>
-                    <p className="text-xs text-neutral-500 uppercase tracking-wider mt-1">
-                      Faster Hiring
-                    </p>
+                <div className="text-center">
+                  <div className="flex h-12 w-12 mx-auto items-center justify-center bg-emerald-950 text-emerald-400">
+                    <Target className="h-6 w-6" aria-hidden="true" />
                   </div>
-                  <div>
-                    <p className="text-2xl font-black text-white">3x</p>
-                    <p className="text-xs text-neutral-500 uppercase tracking-wider mt-1">
-                      Better Retention
-                    </p>
+                  <p className="mt-3 text-sm text-neutral-400">
+                    Committed to success
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="flex h-12 w-12 mx-auto items-center justify-center bg-emerald-950 text-emerald-400">
+                    <Globe className="h-6 w-6" aria-hidden="true" />
                   </div>
-                  <div>
-                    <p className="text-2xl font-black text-white">89%</p>
-                    <p className="text-xs text-neutral-500 uppercase tracking-wider mt-1">
-                      Satisfaction
-                    </p>
+                  <p className="mt-3 text-sm text-neutral-400">
+                    Willing to relocate
+                  </p>
+                </div>
+                <div className="text-center">
+                  <div className="flex h-12 w-12 mx-auto items-center justify-center bg-emerald-950 text-emerald-400">
+                    <TrendingUp className="h-6 w-6" aria-hidden="true" />
                   </div>
+                  <p className="mt-3 text-sm text-neutral-400">
+                    Long-term commitment
+                  </p>
                 </div>
               </div>
             </div>

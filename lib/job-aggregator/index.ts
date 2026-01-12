@@ -6,6 +6,7 @@ import { fetchArbeitnowJobs } from "./sources/arbeitnow";
 import { fetchTheMuseJobs } from "./sources/themuse";
 import { fetchJSearchJobs } from "./sources/jsearch";
 import { sql } from "../db";
+import { logger } from "../logger";
 
 export interface AggregationResult {
   totalFetched: number;
@@ -40,9 +41,9 @@ async function fetchAllJobs(): Promise<{
   // Fetch from all sources in parallel
   const results = await Promise.allSettled(
     sources.map(async (source) => {
-      console.log(`Fetching from ${source.name}...`);
+      logger.info("Fetching jobs from source", { source: source.name });
       const sourceJobs = await source.fetch();
-      console.log(`Fetched ${sourceJobs.length} jobs from ${source.name}`);
+      logger.info("Fetched jobs from source", { source: source.name, count: sourceJobs.length });
       return { name: source.name, jobs: sourceJobs };
     })
   );
@@ -54,7 +55,7 @@ async function fetchAllJobs(): Promise<{
     } else {
       const error = `Failed to fetch from source: ${result.reason}`;
       errors.push(error);
-      console.error(error);
+      logger.error("Failed to fetch from source", result.reason);
     }
   }
 
@@ -158,7 +159,7 @@ async function saveJobsToDatabase(jobs: FilteredJob[]): Promise<{ inserted: numb
         updated++;
       }
     } catch (error) {
-      console.error(`Failed to save job ${job.source_id}:`, error);
+      logger.error("Failed to save job", error, { sourceId: job.source_id });
       failed++;
     }
   }
@@ -182,33 +183,33 @@ async function removeStaleJobs(): Promise<number> {
  * Main aggregation function - fetches, filters, and saves jobs
  */
 export async function aggregateJobs(): Promise<AggregationResult> {
-  console.log("Starting job aggregation...");
+  logger.info("Starting job aggregation");
   const startTime = Date.now();
 
   // Fetch from all sources
   const { jobs: allJobs, bySource: fetchedBySource, errors } = await fetchAllJobs();
-  console.log(`Total fetched: ${allJobs.length} jobs`);
+  logger.info("Total jobs fetched", { count: allJobs.length });
 
   // Filter jobs based on criteria
   const { filtered, bySource: filteredBySource } = filterJobs(allJobs);
-  console.log(`After filtering: ${filtered.length} jobs`);
+  logger.info("Jobs after filtering", { count: filtered.length });
 
   // Deduplicate
   const deduplicated = deduplicateJobs(filtered);
-  console.log(`After deduplication: ${deduplicated.length} jobs`);
+  logger.info("Jobs after deduplication", { count: deduplicated.length });
 
   // Save to database
   const saveResult = await saveJobsToDatabase(deduplicated);
-  console.log(`Saved jobs: ${saveResult.inserted} inserted, ${saveResult.updated} updated, ${saveResult.failed} failed`);
+  logger.info("Jobs saved to database", { inserted: saveResult.inserted, updated: saveResult.updated, failed: saveResult.failed });
 
   // Remove stale jobs
   const removedCount = await removeStaleJobs();
   if (removedCount > 0) {
-    console.log(`Removed ${removedCount} stale jobs`);
+    logger.info("Removed stale jobs", { count: removedCount });
   }
 
   const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-  console.log(`Job aggregation completed in ${duration}s`);
+  logger.info("Job aggregation completed", { durationSeconds: duration });
 
   // Build result
   const result: AggregationResult = {

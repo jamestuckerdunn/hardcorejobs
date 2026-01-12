@@ -1,5 +1,6 @@
 import { AggregatedJob } from "../types";
 import { determineRemoteType } from "../filters";
+import { logger } from "../../logger";
 
 const ADZUNA_APP_ID = process.env.ADZUNA_APP_ID;
 const ADZUNA_API_KEY = process.env.ADZUNA_API_KEY;
@@ -29,7 +30,7 @@ interface AdzunaResponse {
  */
 export async function fetchAdzunaJobs(): Promise<AggregatedJob[]> {
   if (!ADZUNA_APP_ID || !ADZUNA_API_KEY) {
-    console.log("Adzuna API credentials not configured, skipping...");
+    logger.debug("Adzuna API credentials not configured, skipping");
     return [];
   }
 
@@ -61,7 +62,7 @@ export async function fetchAdzunaJobs(): Promise<AggregatedJob[]> {
       const response = await fetch(url.toString());
 
       if (!response.ok) {
-        console.error(`Adzuna API error: ${response.status}`);
+        logger.warn("Adzuna API error", { status: response.status });
         continue;
       }
 
@@ -92,7 +93,7 @@ export async function fetchAdzunaJobs(): Promise<AggregatedJob[]> {
       await new Promise((resolve) => setTimeout(resolve, 200));
     }
   } catch (error) {
-    console.error("Error fetching from Adzuna:", error);
+    logger.error("Error fetching from Adzuna", error);
   }
 
   return jobs;

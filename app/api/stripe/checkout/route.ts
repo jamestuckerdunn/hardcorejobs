@@ -8,6 +8,7 @@ import {
 } from "@/lib/stripe";
 import { checkoutSchema, parseBody, formatZodError } from "@/lib/validations";
 import { getAppUrl } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: Request) {
   const APP_URL = getAppUrl();
@@ -105,7 +106,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: session.url }, { status: 201 });
   } catch (error) {
-    console.error("Checkout error:", error);
+    logger.error("Failed to create checkout session", error);
     return NextResponse.json(
       { error: "Failed to create checkout session" },
       { status: 500 }
