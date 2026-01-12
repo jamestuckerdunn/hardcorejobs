@@ -1,6 +1,6 @@
 import { clsx } from "clsx";
 import Link from "next/link";
-import { Briefcase, Search, Heart, FileText, Bell } from "lucide-react";
+import { Briefcase, Search, Heart, FileText, Bell, AlertCircle } from "lucide-react";
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -112,5 +112,38 @@ export function NoAlerts() {
       description="Set up job alerts to get notified when new positions matching your criteria are posted."
       action={{ label: "Create Alert", href: "/dashboard/alerts/new" }}
     />
+  );
+}
+
+interface ErrorStateProps {
+  title?: string;
+  description?: string;
+  action?: React.ReactNode;
+  className?: string;
+}
+
+export function ErrorState({
+  title = "Something went wrong",
+  description = "An unexpected error occurred. Please try again later.",
+  action,
+  className,
+}: ErrorStateProps) {
+  return (
+    <div
+      className={clsx(
+        "flex flex-col items-center justify-center py-16 px-4 text-center",
+        className
+      )}
+      role="alert"
+    >
+      <div className="flex h-16 w-16 items-center justify-center border border-red-900 text-red-500 mb-6">
+        <AlertCircle className="h-8 w-8" />
+      </div>
+      <h3 className="text-lg font-bold uppercase tracking-tight text-white">
+        {title}
+      </h3>
+      <p className="mt-2 max-w-md text-sm text-neutral-500">{description}</p>
+      {action && <div className="mt-6">{action}</div>}
+    </div>
   );
 }

@@ -1,5 +1,14 @@
 import Stripe from "stripe";
 
+// Check if Stripe is configured
+export function hasStripe(): boolean {
+  return !!(
+    process.env.STRIPE_SECRET_KEY &&
+    process.env.STRIPE_FEATURED_JOB_PRICE_ID &&
+    process.env.STRIPE_RESUME_DB_PRICE_ID
+  );
+}
+
 // Lazy initialization to avoid build-time errors
 let stripeInstance: Stripe | null = null;
 

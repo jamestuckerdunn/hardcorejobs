@@ -3,18 +3,25 @@ import { aggregateJobs } from "@/lib/job-aggregator";
 
 /**
  * Cron endpoint to sync jobs from all sources
- * This is called daily by Vercel Cron Jobs (free tier supports daily)
+ * This is called daily by Vercel Cron Jobs
  *
- * To protect this endpoint, we verify the CRON_SECRET header
- * Set CRON_SECRET in your Vercel environment variables
+ * Protected by CRON_SECRET in production
  */
 export async function GET(request: NextRequest) {
-  // Verify the request is from Vercel Cron
   const authHeader = request.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
+  const isProduction = process.env.NODE_ENV === "production";
 
-  // In production, require CRON_SECRET
-  if (process.env.NODE_ENV === "production" && cronSecret) {
+  // In production, ALWAYS require CRON_SECRET
+  if (isProduction) {
+    if (!cronSecret) {
+      console.error("CRON_SECRET not configured in production");
+      return NextResponse.json(
+        { error: "Server misconfiguration" },
+        { status: 500 }
+      );
+    }
+
     if (authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json(
         { error: "Unauthorized" },
@@ -42,7 +49,9 @@ export async function GET(request: NextRequest) {
       stats: {
         totalFetched: result.totalFetched,
         totalFiltered: result.totalFiltered,
-        totalSaved: result.totalSaved,
+        totalInserted: result.totalInserted,
+        totalUpdated: result.totalUpdated,
+        totalFailed: result.totalFailed,
         duration: `${duration}s`,
         bySource: result.bySource,
       },
@@ -55,14 +64,13 @@ export async function GET(request: NextRequest) {
       {
         success: false,
         error: "Job sync failed",
-        message: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );
   }
 }
 
-// Also support POST for manual triggers
+// Also support POST for manual triggers (with same auth)
 export async function POST(request: NextRequest) {
   return GET(request);
 }

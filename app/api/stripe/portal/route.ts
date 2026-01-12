@@ -1,16 +1,24 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
-import { createCustomerPortalSession } from "@/lib/stripe";
+import { createCustomerPortalSession, hasStripe } from "@/lib/stripe";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 export async function POST() {
+  // Check if Stripe is configured
+  if (!hasStripe()) {
+    return NextResponse.json(
+      { error: "Payment processing is not configured" },
+      { status: 503 }
+    );
+  }
+
   try {
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
     }
 
     // Get employer's Stripe customer ID
@@ -19,7 +27,7 @@ export async function POST() {
       FROM employer_profiles ep
       JOIN users u ON ep.user_id = u.id
       WHERE u.clerk_id = ${userId}
-    `;
+    ` as unknown as { stripe_customer_id?: string }[];
 
     if (employers.length === 0 || !employers[0].stripe_customer_id) {
       return NextResponse.json(

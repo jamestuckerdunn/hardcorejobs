@@ -10,7 +10,9 @@ import { sql } from "../db";
 export interface AggregationResult {
   totalFetched: number;
   totalFiltered: number;
-  totalSaved: number;
+  totalInserted: number;
+  totalUpdated: number;
+  totalFailed: number;
   bySource: Record<string, { fetched: number; filtered: number }>;
   errors: string[];
 }
@@ -105,67 +107,63 @@ function deduplicateJobs(jobs: FilteredJob[]): FilteredJob[] {
 }
 
 /**
- * Save jobs to database
+ * Save jobs to database using UPSERT for better performance
  */
-async function saveJobsToDatabase(jobs: FilteredJob[]): Promise<number> {
-  let savedCount = 0;
+async function saveJobsToDatabase(jobs: FilteredJob[]): Promise<{ inserted: number; updated: number; failed: number }> {
+  let inserted = 0;
+  let updated = 0;
+  let failed = 0;
 
   for (const job of jobs) {
     try {
-      // Check if job already exists by source and source_id
-      const existing = await sql`
-        SELECT id FROM jobs
-        WHERE source = ${job.source} AND source_id = ${job.source_id}
+      // Use UPSERT (INSERT ... ON CONFLICT ... DO UPDATE) for better performance
+      const result = await sql`
+        INSERT INTO jobs (
+          source, source_id, title, company_name, company_logo_url,
+          location, remote_type, salary_min, salary_max, salary_currency,
+          description, requirements, apply_url, posted_at,
+          confidence_score, meets_salary, no_experience, no_degree, status
+        ) VALUES (
+          ${job.source}, ${job.source_id}, ${job.title}, ${job.company_name},
+          ${job.company_logo_url || null}, ${job.location}, ${job.remote_type},
+          ${job.salary_min || null}, ${job.salary_max || null}, ${job.salary_currency},
+          ${job.description}, ${job.requirements || null}, ${job.apply_url},
+          ${job.posted_at}, ${job.confidence_score}, ${job.meets_salary},
+          ${job.no_experience}, ${job.no_degree}, 'active'
+        )
+        ON CONFLICT (source, source_id) DO UPDATE SET
+          title = EXCLUDED.title,
+          company_name = EXCLUDED.company_name,
+          company_logo_url = EXCLUDED.company_logo_url,
+          location = EXCLUDED.location,
+          remote_type = EXCLUDED.remote_type,
+          salary_min = EXCLUDED.salary_min,
+          salary_max = EXCLUDED.salary_max,
+          salary_currency = EXCLUDED.salary_currency,
+          description = EXCLUDED.description,
+          requirements = EXCLUDED.requirements,
+          apply_url = EXCLUDED.apply_url,
+          posted_at = EXCLUDED.posted_at,
+          confidence_score = EXCLUDED.confidence_score,
+          meets_salary = EXCLUDED.meets_salary,
+          no_experience = EXCLUDED.no_experience,
+          no_degree = EXCLUDED.no_degree,
+          updated_at = NOW()
+        RETURNING (xmax = 0) AS is_insert
       `;
 
-      if (existing.length > 0) {
-        // Update existing job
-        await sql`
-          UPDATE jobs SET
-            title = ${job.title},
-            company_name = ${job.company_name},
-            company_logo_url = ${job.company_logo_url || null},
-            location = ${job.location},
-            remote_type = ${job.remote_type},
-            salary_min = ${job.salary_min || null},
-            salary_max = ${job.salary_max || null},
-            salary_currency = ${job.salary_currency},
-            description = ${job.description},
-            requirements = ${job.requirements || null},
-            apply_url = ${job.apply_url},
-            posted_at = ${job.posted_at},
-            confidence_score = ${job.confidence_score},
-            meets_salary = ${job.meets_salary},
-            no_experience = ${job.no_experience},
-            no_degree = ${job.no_degree},
-            updated_at = NOW()
-          WHERE source = ${job.source} AND source_id = ${job.source_id}
-        `;
+      if (result[0]?.is_insert) {
+        inserted++;
       } else {
-        // Insert new job
-        await sql`
-          INSERT INTO jobs (
-            source, source_id, title, company_name, company_logo_url,
-            location, remote_type, salary_min, salary_max, salary_currency,
-            description, requirements, apply_url, posted_at,
-            confidence_score, meets_salary, no_experience, no_degree
-          ) VALUES (
-            ${job.source}, ${job.source_id}, ${job.title}, ${job.company_name},
-            ${job.company_logo_url || null}, ${job.location}, ${job.remote_type},
-            ${job.salary_min || null}, ${job.salary_max || null}, ${job.salary_currency},
-            ${job.description}, ${job.requirements || null}, ${job.apply_url},
-            ${job.posted_at}, ${job.confidence_score}, ${job.meets_salary},
-            ${job.no_experience}, ${job.no_degree}
-          )
-        `;
-        savedCount++;
+        updated++;
       }
     } catch (error) {
       console.error(`Failed to save job ${job.source_id}:`, error);
+      failed++;
     }
   }
 
-  return savedCount;
+  return { inserted, updated, failed };
 }
 
 /**
@@ -200,8 +198,8 @@ export async function aggregateJobs(): Promise<AggregationResult> {
   console.log(`After deduplication: ${deduplicated.length} jobs`);
 
   // Save to database
-  const savedCount = await saveJobsToDatabase(deduplicated);
-  console.log(`Saved ${savedCount} new jobs to database`);
+  const saveResult = await saveJobsToDatabase(deduplicated);
+  console.log(`Saved jobs: ${saveResult.inserted} inserted, ${saveResult.updated} updated, ${saveResult.failed} failed`);
 
   // Remove stale jobs
   const removedCount = await removeStaleJobs();
@@ -216,7 +214,9 @@ export async function aggregateJobs(): Promise<AggregationResult> {
   const result: AggregationResult = {
     totalFetched: allJobs.length,
     totalFiltered: deduplicated.length,
-    totalSaved: savedCount,
+    totalInserted: saveResult.inserted,
+    totalUpdated: saveResult.updated,
+    totalFailed: saveResult.failed,
     bySource: {},
     errors,
   };
