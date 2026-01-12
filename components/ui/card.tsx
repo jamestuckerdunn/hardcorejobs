@@ -119,6 +119,20 @@ export function StatsCard({ label, value, change, icon }: StatsCardProps) {
   );
 }
 
+export function StatsCardSkeleton() {
+  return (
+    <Card className="p-6 animate-pulse">
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="h-3 w-20 bg-neutral-800" />
+          <div className="mt-3 h-8 w-16 bg-neutral-800" />
+        </div>
+        <div className="h-10 w-10 bg-neutral-800" />
+      </div>
+    </Card>
+  );
+}
+
 interface FeatureCardProps {
   icon: React.ReactNode;
   title: string;
