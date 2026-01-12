@@ -167,9 +167,10 @@ export default async function JobDetailPage({
   }
 
   const postedDate = new Date(job.posted_at);
-  const expiresDate = new Date(job.expires_at);
+  // Use a stable date reference for SSR (generated at build/request time)
+  const now = new Date();
   const daysAgo = Math.floor(
-    (Date.now() - postedDate.getTime()) / (1000 * 60 * 60 * 24)
+    (now.getTime() - postedDate.getTime()) / (1000 * 60 * 60 * 24)
   );
 
   return (
