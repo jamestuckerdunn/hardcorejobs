@@ -1,6 +1,12 @@
-import { sql } from "@vercel/postgres";
+import { createPool } from "@vercel/postgres";
 
-export { sql };
+// Create pool with explicit connection string from Vercel-created env vars
+const pool = createPool({
+  connectionString: process.env.POSTGRES_URL || process.env.hardcorejobs_POSTGRES_URL,
+});
+
+export const sql = pool.sql;
+export { pool };
 
 // Helper function for transactions
 export async function withTransaction<T>(
