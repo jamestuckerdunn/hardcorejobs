@@ -11,8 +11,7 @@
   "dependencies": {
     "@clerk/nextjs": "^6.36.7",
     "@clerk/themes": "^2.4.47",
-    "@supabase/ssr": "^0.8.0",
-    "@supabase/supabase-js": "^2.90.1",
+    "@vercel/postgres": "^0.10.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.562.0",
     "next": "16.1.1",
