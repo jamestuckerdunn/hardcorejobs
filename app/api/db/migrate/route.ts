@@ -2,15 +2,23 @@ import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 // This endpoint runs database migrations
-// Protect this in production with a secret key
+// Protect with a secret key via Authorization header
 export async function POST(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const secret = searchParams.get("secret");
+    const authHeader = request.headers.get("authorization");
+    const secret = authHeader?.replace("Bearer ", "");
 
-    // In production, verify the secret
-    if (process.env.CRON_SECRET && secret !== process.env.CRON_SECRET) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Always verify the secret in production
+    if (process.env.NODE_ENV === "production" || process.env.CRON_SECRET) {
+      if (!process.env.CRON_SECRET) {
+        return NextResponse.json(
+          { error: "Migration endpoint not configured" },
+          { status: 503 }
+        );
+      }
+      if (secret !== process.env.CRON_SECRET) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
     }
 
     // Run migrations
@@ -193,7 +201,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Migration error:", error);
     return NextResponse.json(
-      { error: "Migration failed", details: String(error) },
+      { error: "Migration failed" },
       { status: 500 }
     );
   }

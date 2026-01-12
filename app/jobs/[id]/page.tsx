@@ -17,6 +17,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Badge, RemoteBadge, SalaryBadge } from "@/components/ui/badge";
+import { getAppUrl } from "@/lib/env";
 
 interface Job {
   id: string;
@@ -53,8 +54,7 @@ interface SimilarJob {
 
 async function getJob(id: string): Promise<{ job: Job; similarJobs: SimilarJob[] } | null> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const response = await fetch(`${baseUrl}/api/jobs/${id}`, {
+    const response = await fetch(`${getAppUrl()}/api/jobs/${id}`, {
       next: { revalidate: 300 },
     });
 

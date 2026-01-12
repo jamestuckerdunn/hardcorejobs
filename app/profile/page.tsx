@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Shield,
@@ -55,6 +55,14 @@ export default function ProfilePage() {
   };
 
   const profileCompletion = calculateProfileCompletion(profile);
+
+  // Auto-dismiss save message after 5 seconds
+  useEffect(() => {
+    if (saveMessage) {
+      const timer = setTimeout(() => setSaveMessage(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [saveMessage]);
 
   return (
     <div className="bg-black min-h-screen">

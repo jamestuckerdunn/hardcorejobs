@@ -68,6 +68,25 @@ export function isProduction(): boolean {
   return getEnv().NODE_ENV === "production";
 }
 
+/**
+ * Get the application URL.
+ * In production, throws if not configured.
+ * In development, falls back to localhost.
+ */
+export function getAppUrl(): string {
+  const env = getEnv();
+
+  if (env.NEXT_PUBLIC_APP_URL) {
+    return env.NEXT_PUBLIC_APP_URL;
+  }
+
+  if (isProduction()) {
+    throw new Error("NEXT_PUBLIC_APP_URL is required in production");
+  }
+
+  return "http://localhost:3000";
+}
+
 // Log available features on startup (call this in instrumentation.ts)
 export function logFeatureAvailability(): void {
   const features = {

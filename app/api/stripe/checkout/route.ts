@@ -7,10 +7,10 @@ import {
   hasStripe,
 } from "@/lib/stripe";
 import { checkoutSchema, parseBody, formatZodError } from "@/lib/validations";
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+import { getAppUrl } from "@/lib/env";
 
 export async function POST(request: Request) {
+  const APP_URL = getAppUrl();
   // Check if Stripe is configured
   if (!hasStripe()) {
     return NextResponse.json(

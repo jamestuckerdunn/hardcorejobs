@@ -2,10 +2,10 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 import { createCustomerPortalSession, hasStripe } from "@/lib/stripe";
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+import { getAppUrl } from "@/lib/env";
 
 export async function POST() {
+  const APP_URL = getAppUrl();
   // Check if Stripe is configured
   if (!hasStripe()) {
     return NextResponse.json(

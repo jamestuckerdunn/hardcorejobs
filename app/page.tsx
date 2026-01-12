@@ -15,6 +15,7 @@ import {
   Globe,
   CheckCircle2,
 } from "lucide-react";
+import { getAppUrl } from "@/lib/env";
 
 interface FeaturedJob {
   id: string;
@@ -29,8 +30,7 @@ interface FeaturedJob {
 
 async function getFeaturedJobs(): Promise<FeaturedJob[]> {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const response = await fetch(`${baseUrl}/api/jobs?featured=true&limit=3`, {
+    const response = await fetch(`${getAppUrl()}/api/jobs?featured=true&limit=3`, {
       next: { revalidate: 300 }, // Cache for 5 minutes
     });
 

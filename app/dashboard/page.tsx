@@ -10,8 +10,7 @@ import {
   Shield,
 } from "lucide-react";
 import { StatsCard } from "@/components/ui/card";
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+import { getAppUrl } from "@/lib/env";
 
 interface Job {
   id: string;
@@ -24,7 +23,7 @@ interface Job {
 
 async function getRecommendedJobs(): Promise<Job[]> {
   try {
-    const response = await fetch(`${APP_URL}/api/jobs?limit=4`, {
+    const response = await fetch(`${getAppUrl()}/api/jobs?limit=4`, {
       next: { revalidate: 300 },
     });
 
