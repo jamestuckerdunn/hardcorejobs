@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, Linkedin, Twitter, Mail } from "lucide-react";
+import { SOCIAL_LINKS, CONTACT } from "@/lib/constants";
 
 const footerLinks = {
   product: [
@@ -32,12 +33,8 @@ const footerLinks = {
 };
 
 const socialLinks = [
-  { href: "https://twitter.com/hardcorejobs", label: "Twitter", icon: Twitter },
-  {
-    href: "https://linkedin.com/company/hardcorejobs",
-    label: "LinkedIn",
-    icon: Linkedin,
-  },
+  { href: SOCIAL_LINKS.TWITTER, label: "Twitter", icon: Twitter },
+  { href: SOCIAL_LINKS.LINKEDIN, label: "LinkedIn", icon: Linkedin },
 ];
 
 export function Footer() {
@@ -212,11 +209,11 @@ export function Footer() {
           </p>
           <div className="flex items-center gap-4">
             <a
-              href="mailto:hello@hardcorejobs.com"
+              href={`mailto:${CONTACT.EMAIL}`}
               className="flex items-center gap-2 text-xs text-neutral-500 hover:text-white transition-colors"
             >
               <Mail className="h-4 w-4" />
-              hello@hardcorejobs.com
+              {CONTACT.EMAIL}
             </a>
           </div>
         </div>

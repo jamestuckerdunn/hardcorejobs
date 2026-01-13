@@ -8,6 +8,7 @@ import { NoJobsFound } from "@/components/ui/empty-state";
 import { JobListSkeleton } from "@/components/ui/loading";
 import { Zap, TrendingUp, MapPin, Building2 } from "lucide-react";
 import type { Job, JobsResponse } from "@/types";
+import { PAGINATION } from "@/lib/constants";
 
 const defaultFilters: JobFiltersType = {
   search: "",
@@ -26,9 +27,15 @@ export default function JobsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState<{
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasMore: boolean;
+  }>({
     page: 1,
-    limit: 20,
+    limit: PAGINATION.DEFAULT_LIMIT,
     total: 0,
     totalPages: 0,
     hasMore: false,
@@ -56,7 +63,7 @@ export default function JobsPage() {
     try {
       const params = new URLSearchParams();
       params.set("page", String(page));
-      params.set("limit", "20");
+      params.set("limit", String(PAGINATION.DEFAULT_LIMIT));
       if (filters.search) params.set("search", filters.search);
       if (filters.location) params.set("location", filters.location);
       if (filters.remoteType) params.set("remote_type", filters.remoteType);

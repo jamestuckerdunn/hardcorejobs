@@ -15,6 +15,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { FeaturedJobsSection } from "@/components/home/featured-jobs";
+import { SITE_STATS } from "@/lib/constants";
 
 // Companies that hire
 const companies = [
@@ -48,7 +49,7 @@ export default function Home() {
             {/* Badge */}
             <div className="mb-8 inline-flex items-center gap-2 border border-neutral-800 bg-neutral-900/50 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-neutral-400 animate-fade-down">
               <Zap className="h-3 w-3 text-amber-500" />
-              500+ Jobs Available Now
+              {SITE_STATS.TOTAL_JOBS} Jobs Available Now
             </div>
 
             {/* Main headline */}
@@ -196,7 +197,7 @@ export default function Home() {
           <div className="grid gap-8 text-center md:grid-cols-4">
             <div className="group">
               <p className="text-5xl font-black text-white sm:text-6xl group-hover:scale-110 transition-transform">
-                500<span className="text-neutral-600">+</span>
+                {SITE_STATS.TOTAL_JOBS.replace("+", "")}<span className="text-neutral-600">+</span>
               </p>
               <p className="mt-3 text-sm uppercase tracking-wider text-neutral-500">
                 Active Jobs
@@ -204,7 +205,7 @@ export default function Home() {
             </div>
             <div className="group">
               <p className="text-5xl font-black text-white sm:text-6xl group-hover:scale-110 transition-transform">
-                $127K
+                {SITE_STATS.AVG_SALARY}
               </p>
               <p className="mt-3 text-sm uppercase tracking-wider text-neutral-500">
                 Average Salary
@@ -212,7 +213,7 @@ export default function Home() {
             </div>
             <div className="group">
               <p className="text-5xl font-black text-white sm:text-6xl group-hover:scale-110 transition-transform">
-                10K<span className="text-neutral-600">+</span>
+                {SITE_STATS.JOB_SEEKERS.replace("+", "")}<span className="text-neutral-600">+</span>
               </p>
               <p className="mt-3 text-sm uppercase tracking-wider text-neutral-500">
                 Hardcore Job Seekers
@@ -220,7 +221,7 @@ export default function Home() {
             </div>
             <div className="group">
               <p className="text-5xl font-black text-white sm:text-6xl group-hover:scale-110 transition-transform">
-                48<span className="text-neutral-600">hrs</span>
+                {SITE_STATS.AVG_INTERVIEW_TIME.replace("hrs", "")}<span className="text-neutral-600">hrs</span>
               </p>
               <p className="mt-3 text-sm uppercase tracking-wider text-neutral-500">
                 Avg Time to Interview

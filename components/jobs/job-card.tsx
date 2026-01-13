@@ -197,7 +197,7 @@ export function JobCardCompact({ job, className }: JobCardCompactProps) {
         {job.company_logo_url ? (
           <img
             src={job.company_logo_url}
-            alt=""
+            alt={`${job.company_name} logo`}
             className="h-8 w-8 shrink-0 object-contain bg-neutral-900"
           />
         ) : (

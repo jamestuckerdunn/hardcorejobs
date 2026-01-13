@@ -1,5 +1,6 @@
 import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { createApiError } from "@/lib/logger";
 
 export async function GET(
   request: Request,
@@ -26,8 +27,10 @@ export async function GET(
       return NextResponse.json({ error: "Job not found" }, { status: 404 });
     }
 
-    const titleFirstWord = (job.title as string).split(" ")[0] ?? "";
-    const companyName = job.company_name as string;
+    // Safely extract title and company name with proper type checking
+    const title = typeof job.title === "string" ? job.title : "";
+    const companyName = typeof job.company_name === "string" ? job.company_name : "";
+    const titleFirstWord = title.split(" ")[0] || "";
 
     const similarJobs = await sql`
       SELECT
@@ -55,7 +58,7 @@ export async function GET(
     });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to fetch job", details: String(error) },
+      createApiError("Failed to fetch job", error, { route: "/api/jobs/[id]" }),
       { status: 500 }
     );
   }

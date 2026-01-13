@@ -83,6 +83,7 @@ export function SearchInput({
         <button
           type="button"
           onClick={onClear}
+          aria-label="Clear search"
           className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-neutral-500 hover:text-white transition-colors"
         >
           <X className="h-4 w-4" />

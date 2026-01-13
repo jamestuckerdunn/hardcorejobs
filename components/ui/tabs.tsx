@@ -130,12 +130,7 @@ export function PillTabs({ tabs, activeTab, onChange, className }: PillTabsProps
         >
           {tab.label}
           {tab.count !== undefined && (
-            <span
-              className={clsx(
-                "ml-2",
-                activeTab === tab.value ? "text-neutral-600" : "text-neutral-600"
-              )}
-            >
+            <span className="ml-2 text-neutral-600">
               {tab.count}
             </span>
           )}

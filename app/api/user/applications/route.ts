@@ -1,6 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
 import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { createApiError } from "@/lib/logger";
+import { sanitizeUUID, sanitizeString, sanitizeUrl } from "@/lib/validation";
+import { INPUT_LIMITS } from "@/lib/constants";
 
 export async function GET() {
   try {
@@ -28,7 +31,7 @@ export async function GET() {
     return NextResponse.json({ applications });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to fetch applications", details: String(error) },
+      createApiError("Failed to fetch applications", error, { route: "/api/user/applications" }),
       { status: 500 }
     );
   }
@@ -42,11 +45,15 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { jobId, coverLetter, resumeUrl } = body;
+
+    // Validate inputs
+    const jobId = sanitizeUUID(body.jobId);
+    const coverLetter = sanitizeString(body.coverLetter).slice(0, INPUT_LIMITS.COVER_LETTER) || null;
+    const resumeUrl = sanitizeUrl(body.resumeUrl);
 
     if (!jobId) {
       return NextResponse.json(
-        { error: "Job ID is required" },
+        { error: "Valid job ID is required" },
         { status: 400 }
       );
     }
@@ -84,14 +91,14 @@ export async function POST(request: Request) {
 
     const results = await sql`
       INSERT INTO applications (job_id, user_id, cover_letter, resume_url, status)
-      VALUES (${jobId}, ${userId}, ${coverLetter || null}, ${resumeUrl || null}, 'pending')
+      VALUES (${jobId}, ${userId}, ${coverLetter}, ${resumeUrl}, 'pending')
       RETURNING *
     `;
 
     return NextResponse.json({ application: results[0] }, { status: 201 });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to submit application", details: String(error) },
+      createApiError("Failed to submit application", error, { route: "/api/user/applications" }),
       { status: 500 }
     );
   }

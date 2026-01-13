@@ -1,6 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { createApiError } from "@/lib/logger";
+import { sanitizeBoolean } from "@/lib/validation";
 
 export async function GET() {
   try {
@@ -42,7 +44,7 @@ export async function GET() {
     });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to fetch pledge", details: String(error) },
+      createApiError("Failed to fetch pledge", error, { route: "/api/user/pledge" }),
       { status: 500 }
     );
   }
@@ -56,7 +58,12 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { relocate, hours, immediate, twoYears } = body;
+
+    // Validate all boolean inputs
+    const relocate = sanitizeBoolean(body.relocate);
+    const hours = sanitizeBoolean(body.hours);
+    const immediate = sanitizeBoolean(body.immediate);
+    const twoYears = sanitizeBoolean(body.twoYears);
 
     const existingPledges = await sql`
       SELECT id FROM pledges WHERE user_id = ${userId}
@@ -89,7 +96,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to save pledge", details: String(error) },
+      createApiError("Failed to save pledge", error, { route: "/api/user/pledge" }),
       { status: 500 }
     );
   }

@@ -1,10 +1,12 @@
 import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { createApiError } from "@/lib/logger";
 
 export async function POST(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const secret = searchParams.get("secret");
+    // Get secret from Authorization header (not query params to avoid logging)
+    const authHeader = request.headers.get("Authorization");
+    const secret = authHeader?.replace("Bearer ", "");
 
     // In production, always require the secret
     const isProduction = process.env.NODE_ENV === "production";
@@ -188,7 +190,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, message: "Migrations completed" });
   } catch (error) {
     return NextResponse.json(
-      { error: "Migration failed", details: String(error) },
+      createApiError("Migration failed", error, { route: "/api/db/migrate" }),
       { status: 500 }
     );
   }

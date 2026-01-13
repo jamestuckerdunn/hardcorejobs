@@ -1,6 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { createApiError } from "@/lib/logger";
+import { sanitizeUUID } from "@/lib/validation";
 
 export async function GET() {
   try {
@@ -33,7 +35,7 @@ export async function GET() {
     return NextResponse.json({ savedJobs });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to fetch saved jobs", details: String(error) },
+      createApiError("Failed to fetch saved jobs", error, { route: "/api/user/saved-jobs" }),
       { status: 500 }
     );
   }
@@ -47,11 +49,11 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { jobId } = body;
+    const jobId = sanitizeUUID(body.jobId);
 
     if (!jobId) {
       return NextResponse.json(
-        { error: "Job ID is required" },
+        { error: "Valid job ID is required" },
         { status: 400 }
       );
     }
@@ -77,7 +79,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ saved: true, message: "Job saved" }, { status: 201 });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to save job", details: String(error) },
+      createApiError("Failed to save job", error, { route: "/api/user/saved-jobs" }),
       { status: 500 }
     );
   }

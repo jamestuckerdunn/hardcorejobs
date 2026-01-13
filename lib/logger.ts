@@ -54,20 +54,14 @@ export const logger = {
 };
 
 // Error response helper for consistent API error responses
-export function createErrorResponse(
+export function createApiError(
   message: string,
-  status: number,
-  details?: string
+  error: unknown,
+  context?: { route?: string; userId?: string }
 ) {
-  // Log all errors
-  if (status >= 500) {
-    logger.error(message, details);
-  } else if (status >= 400) {
-    logger.warn(message, { details });
-  }
+  // Log the error server-side (logger.error handles error details internally)
+  logger.error(message, error, context);
 
-  return {
-    error: message,
-    ...(process.env.NODE_ENV === "development" && details ? { details } : {}),
-  };
+  // Never expose error details to clients - only return generic message
+  return { error: message };
 }

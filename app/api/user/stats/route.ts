@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { createApiError } from "@/lib/logger";
 
 export async function GET() {
   try {
@@ -36,7 +37,7 @@ export async function GET() {
     return NextResponse.json({ stats });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to fetch stats", details: String(error) },
+      createApiError("Failed to fetch stats", error, { route: "/api/user/stats" }),
       { status: 500 }
     );
   }

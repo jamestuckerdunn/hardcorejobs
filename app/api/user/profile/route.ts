@@ -1,6 +1,14 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { sql } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { createApiError } from "@/lib/logger";
+import {
+  sanitizeString,
+  sanitizeUrl,
+  sanitizePhone,
+  sanitizeBoolean,
+} from "@/lib/validation";
+import { INPUT_LIMITS } from "@/lib/constants";
 
 export async function GET() {
   try {
@@ -19,8 +27,8 @@ export async function GET() {
       return NextResponse.json({
         profile: null,
         clerkUser: {
-          email: user?.emailAddresses[0]?.emailAddress,
-          fullName: user?.fullName || `${user?.firstName || ""} ${user?.lastName || ""}`.trim(),
+          email: user?.emailAddresses?.[0]?.emailAddress ?? null,
+          fullName: user?.fullName || `${user?.firstName || ""} ${user?.lastName || ""}`.trim() || null,
         },
       });
     }
@@ -28,7 +36,7 @@ export async function GET() {
     return NextResponse.json({ profile });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to fetch profile", details: String(error) },
+      createApiError("Failed to fetch profile", error, { route: "/api/user/profile" }),
       { status: 500 }
     );
   }
@@ -42,16 +50,24 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const {
-      fullName,
-      phone,
-      headline,
-      location,
-      willingToRelocate,
-      linkedinUrl,
-      portfolioUrl,
-      bio,
-    } = body;
+
+    // Validate and sanitize all inputs
+    const fullName = sanitizeString(body.fullName).slice(0, INPUT_LIMITS.FULL_NAME);
+    const phone = sanitizePhone(body.phone);
+    const headline = sanitizeString(body.headline).slice(0, INPUT_LIMITS.HEADLINE) || null;
+    const location = sanitizeString(body.location).slice(0, INPUT_LIMITS.LOCATION) || null;
+    const willingToRelocate = sanitizeBoolean(body.willingToRelocate);
+    const linkedinUrl = sanitizeUrl(body.linkedinUrl);
+    const portfolioUrl = sanitizeUrl(body.portfolioUrl);
+    const bio = sanitizeString(body.bio).slice(0, INPUT_LIMITS.BIO) || null;
+
+    // Validate required fields
+    if (!fullName) {
+      return NextResponse.json(
+        { error: "Full name is required" },
+        { status: 400 }
+      );
+    }
 
     const existingProfiles = await sql`
       SELECT id FROM job_seeker_profiles WHERE clerk_user_id = ${userId}
@@ -63,13 +79,13 @@ export async function PUT(request: Request) {
         UPDATE job_seeker_profiles
         SET
           full_name = ${fullName},
-          phone = ${phone || null},
-          headline = ${headline || null},
-          location = ${location || null},
-          willing_to_relocate = ${willingToRelocate ?? true},
-          linkedin_url = ${linkedinUrl || null},
-          portfolio_url = ${portfolioUrl || null},
-          bio = ${bio || null},
+          phone = ${phone},
+          headline = ${headline},
+          location = ${location},
+          willing_to_relocate = ${willingToRelocate},
+          linkedin_url = ${linkedinUrl},
+          portfolio_url = ${portfolioUrl},
+          bio = ${bio},
           updated_at = NOW()
         WHERE clerk_user_id = ${userId}
         RETURNING *
@@ -77,16 +93,16 @@ export async function PUT(request: Request) {
       profile = results[0];
     } else {
       const user = await currentUser();
-      const email = user?.emailAddresses[0]?.emailAddress || "";
+      const email = user?.emailAddresses?.[0]?.emailAddress || "";
 
       const results = await sql`
         INSERT INTO job_seeker_profiles (
           clerk_user_id, email, full_name, phone, headline, location,
           willing_to_relocate, linkedin_url, portfolio_url, bio
         ) VALUES (
-          ${userId}, ${email}, ${fullName}, ${phone || null}, ${headline || null},
-          ${location || null}, ${willingToRelocate ?? true}, ${linkedinUrl || null},
-          ${portfolioUrl || null}, ${bio || null}
+          ${userId}, ${email}, ${fullName}, ${phone}, ${headline},
+          ${location}, ${willingToRelocate}, ${linkedinUrl},
+          ${portfolioUrl}, ${bio}
         )
         RETURNING *
       `;
@@ -96,7 +112,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ profile });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to update profile", details: String(error) },
+      createApiError("Failed to update profile", error, { route: "/api/user/profile" }),
       { status: 500 }
     );
   }
