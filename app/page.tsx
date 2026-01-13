@@ -4,7 +4,6 @@ import {
   DollarSign,
   GraduationCap,
   Briefcase,
-  MapPin,
   Target,
   Zap,
   Shield,
@@ -15,37 +14,7 @@ import {
   Globe,
   CheckCircle2,
 } from "lucide-react";
-
-// Sample featured jobs for preview
-const featuredJobs = [
-  {
-    id: "1",
-    title: "Sales Development Representative",
-    company: "TechFlow Inc",
-    location: "Remote",
-    salary: "$120K - $150K",
-    type: "remote" as const,
-    featured: true,
-  },
-  {
-    id: "2",
-    title: "Field Service Technician",
-    company: "PowerGrid Systems",
-    location: "Austin, TX",
-    salary: "$110K - $140K",
-    type: "onsite" as const,
-    featured: true,
-  },
-  {
-    id: "3",
-    title: "Insurance Sales Agent",
-    company: "SecureLife",
-    location: "Hybrid",
-    salary: "$100K - $200K",
-    type: "hybrid" as const,
-    featured: false,
-  },
-];
+import { FeaturedJobsSection } from "@/components/home/featured-jobs";
 
 // Companies that hire
 const companies = [
@@ -154,77 +123,7 @@ export default function Home() {
       </section>
 
       {/* Featured Jobs Preview */}
-      <section className="border-b border-neutral-800 py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-12">
-            <div>
-              <h2 className="text-3xl font-black uppercase tracking-tight text-white sm:text-4xl">
-                Featured Jobs
-              </h2>
-              <p className="mt-2 text-neutral-400">
-                Hand-picked opportunities with top employers
-              </p>
-            </div>
-            <Link
-              href="/jobs"
-              className="hidden sm:flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-white hover:text-neutral-300 transition-colors"
-            >
-              View All Jobs
-              <ChevronRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {featuredJobs.map((job, i) => (
-              <Link
-                key={job.id}
-                href={`/jobs/${job.id}`}
-                className={`group card card-lift p-6 ${
-                  job.featured ? "border-amber-900/50 bg-amber-950/10" : ""
-                }`}
-                style={{ animationDelay: `${i * 100}ms` }}
-              >
-                {job.featured && (
-                  <div className="mb-4 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-amber-500">
-                    <Zap className="h-3 w-3" />
-                    Featured
-                  </div>
-                )}
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-neutral-900 text-lg font-bold text-neutral-600">
-                    {job.company.charAt(0)}
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="font-bold text-white group-hover:underline truncate">
-                      {job.title}
-                    </h3>
-                    <p className="text-sm text-neutral-400">{job.company}</p>
-                  </div>
-                </div>
-                <div className="mt-4 flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1 bg-emerald-950 px-2 py-1 text-xs font-medium text-emerald-400">
-                    {job.salary}
-                  </span>
-                  <span className="inline-flex items-center gap-1 bg-neutral-900 px-2 py-1 text-xs font-medium text-neutral-400">
-                    <MapPin className="h-3 w-3" />
-                    {job.location}
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          <div className="mt-8 text-center sm:hidden">
-            <Link
-              href="/jobs"
-              className="btn btn-secondary px-6 py-3 text-sm"
-            >
-              View All Jobs
-              <ChevronRight className="ml-2 h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
+      <FeaturedJobsSection />
 
       {/* Value Props */}
       <section className="border-b border-neutral-800 py-24">

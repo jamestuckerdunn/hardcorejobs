@@ -6,7 +6,20 @@ export async function POST(request: Request) {
     const { searchParams } = new URL(request.url);
     const secret = searchParams.get("secret");
 
-    if (process.env.CRON_SECRET && secret !== process.env.CRON_SECRET) {
+    // In production, always require the secret
+    const isProduction = process.env.NODE_ENV === "production";
+    const secretConfigured = !!process.env.CRON_SECRET;
+    const secretValid = secret === process.env.CRON_SECRET;
+
+    if (isProduction && (!secretConfigured || !secretValid)) {
+      return NextResponse.json(
+        { error: "Unauthorized - Migration requires CRON_SECRET in production" },
+        { status: 401 }
+      );
+    }
+
+    // In development, still check secret if configured
+    if (!isProduction && secretConfigured && !secretValid) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

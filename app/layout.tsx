@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { ClerkProvider } from "@clerk/nextjs";
-import { dark } from "@clerk/themes";
+import { ConditionalClerkProvider } from "@/components/providers/clerk-provider";
 import "./globals.css";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -48,16 +47,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider appearance={{ baseTheme: dark }}>
-      <html lang="en" className="dark">
-        <body className="antialiased font-sans">
+    <html lang="en" className="dark">
+      <body className="antialiased font-sans">
+        <ConditionalClerkProvider>
           <div className="flex min-h-screen flex-col">
             <Header />
             <main className="flex-1">{children}</main>
             <Footer />
           </div>
-        </body>
-      </html>
-    </ClerkProvider>
+        </ConditionalClerkProvider>
+      </body>
+    </html>
   );
 }
