@@ -1,0 +1,7 @@
+.next
+.git
+node_modules
+tests
+playwright-report
+coverage
+*.md
