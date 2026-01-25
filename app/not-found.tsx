@@ -1,9 +1,6 @@
 import Link from "next/link";
 import { Search, Home, Briefcase } from "lucide-react";
 
-// Force dynamic rendering to avoid Clerk provider issues during static generation
-export const dynamic = "force-dynamic";
-
 export default function NotFoundPage() {
   return (
     <div className="flex min-h-[calc(100vh-200px)] flex-col items-center justify-center bg-black px-4">

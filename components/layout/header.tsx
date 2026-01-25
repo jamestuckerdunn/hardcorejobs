@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Menu,
   X,
@@ -44,6 +44,17 @@ const userMenuLinks = [
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Only render Clerk components after hydration to avoid SSG context errors
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // During SSR/SSG, render signed-out state to avoid Clerk context errors
+  const AuthSignedIn = mounted && isClerkConfigured ? SignedIn : () => null;
+  const AuthSignedOut = mounted && isClerkConfigured ? SignedOut : ({ children }: { children: React.ReactNode }) => <>{children}</>;
+  const AuthUserButton = mounted && isClerkConfigured ? UserButton : () => null;
 
   return (
     <header className="sticky top-0 z-50 border-b border-neutral-800 bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/80">
@@ -70,7 +81,7 @@ export function Header() {
 
         {/* Desktop Auth */}
         <div className="hidden items-center gap-3 md:flex">
-          <SignedOut>
+          <AuthSignedOut>
             <Link
               href="/sign-in"
               className="px-4 py-2 text-sm font-medium uppercase tracking-wider text-neutral-400 transition-colors hover:text-white"
@@ -83,16 +94,16 @@ export function Header() {
             >
               Get Started
             </Link>
-          </SignedOut>
+          </AuthSignedOut>
 
-          <SignedIn>
+          <AuthSignedIn>
             <Link
               href="/dashboard"
               className="px-4 py-2 text-sm font-medium uppercase tracking-wider text-neutral-400 transition-colors hover:text-white"
             >
               Dashboard
             </Link>
-            <UserButton
+            <AuthUserButton
               appearance={{
                 elements: {
                   avatarBox: "w-9 h-9",
@@ -104,7 +115,7 @@ export function Header() {
                 },
               }}
             />
-          </SignedIn>
+          </AuthSignedIn>
         </div>
 
         {/* Mobile Menu Button */}
@@ -137,7 +148,7 @@ export function Header() {
               </Link>
             ))}
 
-            <SignedIn>
+            <AuthSignedIn>
               <div className="my-4 border-t border-neutral-800 pt-4">
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-600">
                   Account
@@ -154,10 +165,10 @@ export function Header() {
                   </Link>
                 ))}
               </div>
-            </SignedIn>
+            </AuthSignedIn>
 
             <div className="border-t border-neutral-800 pt-4 space-y-2">
-              <SignedOut>
+              <AuthSignedOut>
                 <Link
                   href="/sign-in"
                   className="btn btn-ghost w-full py-3 text-sm"
@@ -172,7 +183,7 @@ export function Header() {
                 >
                   Get Started
                 </Link>
-              </SignedOut>
+              </AuthSignedOut>
             </div>
           </div>
         </div>
