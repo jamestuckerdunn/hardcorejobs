@@ -10,15 +10,13 @@ import {
   User,
   Settings,
   LayoutDashboard,
-  Zap,
 } from "lucide-react";
-import { SITE_STATS } from "@/lib/constants";
 
 // Conditionally import Clerk components
 const isClerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 // Dynamic imports for Clerk components to avoid errors when not configured
-let SignedIn: React.ComponentType<{ children: React.ReactNode }> = ({ children: _children }) => null;
+let SignedIn: React.ComponentType<{ children: React.ReactNode }> = () => null;
 let SignedOut: React.ComponentType<{ children: React.ReactNode }> = ({ children }) => <>{children}</>;
 let UserButton: React.ComponentType<{ appearance?: unknown }> = () => null;
 
@@ -88,13 +86,6 @@ export function Header() {
           </SignedOut>
 
           <SignedIn>
-            <Link
-              href="/jobs"
-              className="mr-2 flex items-center gap-1 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-amber-500 border border-amber-500/30 hover:bg-amber-500/10 transition-colors"
-            >
-              <Zap className="h-3 w-3" />
-              {SITE_STATS.TOTAL_JOBS} Jobs
-            </Link>
             <Link
               href="/dashboard"
               className="px-4 py-2 text-sm font-medium uppercase tracking-wider text-neutral-400 transition-colors hover:text-white"

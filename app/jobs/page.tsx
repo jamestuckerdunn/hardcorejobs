@@ -10,6 +10,23 @@ import { Zap, TrendingUp, MapPin, Building2 } from "lucide-react";
 import type { Job, JobsResponse } from "@/types";
 import { PAGINATION } from "@/lib/constants";
 
+function getVisiblePageNumbers(currentPage: number, totalPages: number): number[] {
+  const maxVisible = 5;
+  const pages: number[] = [];
+
+  if (totalPages <= maxVisible) {
+    for (let i = 1; i <= totalPages; i++) pages.push(i);
+  } else if (currentPage <= 3) {
+    for (let i = 1; i <= maxVisible; i++) pages.push(i);
+  } else if (currentPage >= totalPages - 2) {
+    for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+  } else {
+    for (let i = currentPage - 2; i <= currentPage + 2; i++) pages.push(i);
+  }
+
+  return pages;
+}
+
 const defaultFilters: JobFiltersType = {
   search: "",
   location: "",
@@ -291,31 +308,19 @@ export default function JobsPage() {
                 Previous
               </button>
               <div className="flex gap-1">
-                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                  let pageNum: number;
-                  if (pagination.totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (pagination.page <= 3) {
-                    pageNum = i + 1;
-                  } else if (pagination.page >= pagination.totalPages - 2) {
-                    pageNum = pagination.totalPages - 4 + i;
-                  } else {
-                    pageNum = pagination.page - 2 + i;
-                  }
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => handlePageChange(pageNum)}
-                      className={`h-10 w-10 text-sm font-semibold transition-colors ${
-                        pageNum === pagination.page
-                          ? "bg-white text-black"
-                          : "text-neutral-500 hover:text-white"
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
+                {getVisiblePageNumbers(pagination.page, pagination.totalPages).map((pageNum) => (
+                  <button
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum)}
+                    className={`h-10 w-10 text-sm font-semibold transition-colors ${
+                      pageNum === pagination.page
+                        ? "bg-white text-black"
+                        : "text-neutral-500 hover:text-white"
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                ))}
               </div>
               <button
                 onClick={() => handlePageChange(pagination.page + 1)}

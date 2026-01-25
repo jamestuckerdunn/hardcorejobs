@@ -58,6 +58,19 @@ export async function POST(request: Request) {
     `;
 
     await sql`
+      CREATE TABLE IF NOT EXISTS pledges (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id TEXT UNIQUE NOT NULL,
+        relocate BOOLEAN DEFAULT false,
+        hours BOOLEAN DEFAULT false,
+        immediate BOOLEAN DEFAULT false,
+        two_years BOOLEAN DEFAULT false,
+        signed_at TIMESTAMPTZ DEFAULT NOW(),
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `;
+
+    await sql`
       CREATE TABLE IF NOT EXISTS employer_profiles (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         user_id UUID REFERENCES users(id) ON DELETE CASCADE,
@@ -179,13 +192,20 @@ export async function POST(request: Request) {
       )
     `;
 
+    // Add columns for experience and degree requirements (for Jooble integration)
+    await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS experience_required TEXT`;
+    await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS degree_required TEXT`;
+
     await sql`CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_jobs_salary ON jobs(salary_min, salary_max)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_jobs_location ON jobs(location)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_jobs_featured ON jobs(is_featured, featured_until)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_jobs_source ON jobs(source)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_jobs_experience ON jobs(experience_required)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_jobs_degree ON jobs(degree_required)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_job_seeker_visibility ON job_seeker_profiles(visibility)`;
     await sql`CREATE INDEX IF NOT EXISTS idx_users_clerk_id ON users(clerk_id)`;
+    await sql`CREATE INDEX IF NOT EXISTS idx_pledges_user_id ON pledges(user_id)`;
 
     return NextResponse.json({ success: true, message: "Migrations completed" });
   } catch (error) {

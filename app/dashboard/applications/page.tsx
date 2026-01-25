@@ -81,8 +81,8 @@ export default function ApplicationsPage() {
           const data = await response.json();
           setApplications(data.applications || []);
         }
-      } catch (error) {
-        console.error("Failed to fetch applications:", error);
+      } catch {
+        // Silent failure - empty state shown
       } finally {
         setIsLoading(false);
       }

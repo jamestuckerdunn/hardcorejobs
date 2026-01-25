@@ -92,8 +92,8 @@ export default function DashboardPage() {
           const data = await pledgeRes.json();
           setPledgeStatus(data.pledge);
         }
-      } catch (error) {
-        console.error("Failed to fetch dashboard data:", error);
+      } catch {
+        // Errors are handled by individual response checks above
       } finally {
         setIsLoading(false);
       }

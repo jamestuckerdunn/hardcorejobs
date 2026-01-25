@@ -42,8 +42,8 @@ export function FeaturedJobsSection() {
           const data = await response.json();
           setJobs(data.jobs?.slice(0, 3) || []);
         }
-      } catch (error) {
-        console.error("Failed to fetch featured jobs:", error);
+      } catch {
+        // Silent failure - empty state shown
       } finally {
         setIsLoading(false);
       }

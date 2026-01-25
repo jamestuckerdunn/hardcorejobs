@@ -28,6 +28,18 @@ CREATE TABLE IF NOT EXISTS job_seeker_profiles (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- User Pledges (Hardcore Pledge commitments)
+CREATE TABLE IF NOT EXISTS pledges (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT UNIQUE NOT NULL,
+  relocate BOOLEAN DEFAULT false,
+  hours BOOLEAN DEFAULT false,
+  immediate BOOLEAN DEFAULT false,
+  two_years BOOLEAN DEFAULT false,
+  signed_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Employer Profiles
 CREATE TABLE IF NOT EXISTS employer_profiles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -150,3 +162,4 @@ CREATE INDEX IF NOT EXISTS idx_jobs_featured ON jobs(is_featured, featured_until
 CREATE INDEX IF NOT EXISTS idx_jobs_source ON jobs(source);
 CREATE INDEX IF NOT EXISTS idx_job_seeker_visibility ON job_seeker_profiles(visibility);
 CREATE INDEX IF NOT EXISTS idx_users_clerk_id ON users(clerk_id);
+CREATE INDEX IF NOT EXISTS idx_pledges_user_id ON pledges(user_id);

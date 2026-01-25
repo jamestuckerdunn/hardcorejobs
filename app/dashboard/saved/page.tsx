@@ -73,8 +73,8 @@ export default function SavedJobsPage() {
           const data = await response.json();
           setSavedJobs(data.savedJobs || []);
         }
-      } catch (error) {
-        console.error("Failed to fetch saved jobs:", error);
+      } catch {
+        // Silent failure - empty state will be shown
       } finally {
         setIsLoading(false);
       }
@@ -95,8 +95,8 @@ export default function SavedJobsPage() {
       if (response.ok) {
         setSavedJobs((prev) => prev.filter((job) => job.job_id !== jobId));
       }
-    } catch (error) {
-      console.error("Failed to remove saved job:", error);
+    } catch {
+      // Silent failure - job remains in list
     } finally {
       setRemovingId(null);
     }

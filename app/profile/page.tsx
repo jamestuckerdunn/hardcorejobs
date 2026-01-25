@@ -79,8 +79,8 @@ export default function ProfilePage() {
             setPledgeStatus(data.pledge);
           }
         }
-      } catch (error) {
-        console.error("Failed to fetch profile data:", error);
+      } catch {
+        // Silent failure - default empty profile shown
       } finally {
         setIsLoading(false);
       }
@@ -101,8 +101,8 @@ export default function ProfilePage() {
       if (!response.ok) {
         throw new Error("Failed to save profile");
       }
-    } catch (error) {
-      console.error("Failed to save profile:", error);
+    } catch {
+      // Silent failure - form remains editable
     } finally {
       setIsSaving(false);
     }

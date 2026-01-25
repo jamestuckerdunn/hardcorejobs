@@ -124,8 +124,8 @@ export default function JobDetailPage({
           );
           setIsSaved(savedJobIds.includes(jobId));
         }
-      } catch (error) {
-        console.error("Failed to fetch job:", error);
+      } catch {
+        // Error handled via notFoundState
       } finally {
         setIsLoading(false);
       }
@@ -147,8 +147,8 @@ export default function JobDetailPage({
       if (response.ok) {
         setIsSaved(!isSaved);
       }
-    } catch (error) {
-      console.error("Failed to save job:", error);
+    } catch {
+      // Silent failure - save state unchanged
     } finally {
       setIsSaving(false);
     }

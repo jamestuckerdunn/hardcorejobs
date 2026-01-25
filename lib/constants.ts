@@ -8,14 +8,6 @@ export const PAGINATION = {
   MAX_LIMIT: 100,
 } as const;
 
-// Site statistics (displayed on homepage and header)
-export const SITE_STATS = {
-  TOTAL_JOBS: "500+",
-  AVG_SALARY: "$127K",
-  JOB_SEEKERS: "10K+",
-  AVG_INTERVIEW_TIME: "48hrs",
-} as const;
-
 // Social media links
 export const SOCIAL_LINKS = {
   TWITTER: "https://twitter.com/hardcorejobs",
@@ -40,4 +32,13 @@ export const INPUT_LIMITS = {
   LOCATION: 200,
   BIO: 2000,
   COVER_LETTER: 5000,
+} as const;
+
+// Jooble API settings
+export const JOOBLE = {
+  BASE_URL: "https://jooble.org/api",
+  RATE_LIMIT_DELAY_MS: 1000,
+  MAX_PAGES_PER_SEARCH: 10,
+  MAX_RETRIES: 3,
+  DEFAULT_LOCATION: "United States",
 } as const;

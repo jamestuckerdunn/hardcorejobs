@@ -1,6 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
 const isProtectedRoute = createRouteMatcher([
   "/dashboard(.*)",
@@ -30,9 +29,8 @@ export default isClerkConfigured
         await auth.protect();
       }
     })
-  : function middleware(_request: NextRequest) {
+  : function middleware() {
       // Development only: pass through when Clerk isn't configured
-      console.warn("⚠️ Clerk not configured - all routes are public");
       return NextResponse.next();
     };
 

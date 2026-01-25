@@ -1,12 +1,24 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   Check,
   Building2,
   Users,
   ArrowRight,
-  Star,
   ChevronRight,
+  Star,
 } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "Pricing",
+  description:
+    "HARDCOREJOBS pricing: Free for job seekers, affordable plans for employers. Post featured jobs for $99 or access our resume database for $199/month.",
+  openGraph: {
+    title: "Pricing | HARDCOREJOBS",
+    description:
+      "Free for job seekers. Employers: Featured jobs $99, Resume database $199/mo.",
+  },
+};
 
 const jobSeekerFeatures = [
   "Browse all $100K+ jobs",
@@ -73,7 +85,7 @@ const employerPlans = [
       "SLA guarantees",
     ],
     cta: "Contact Sales",
-    href: "/contact",
+    href: "mailto:hello@hardcorejobs.com",
     highlighted: false,
   },
 ];
@@ -112,23 +124,6 @@ const comparisonFeatures = [
     resume: true,
   },
   { feature: "Priority support", free: false, featured: false, resume: true },
-];
-
-const testimonials = [
-  {
-    quote:
-      "We filled 5 SDR positions in 3 weeks. The quality of candidates who take the pledge is significantly higher.",
-    name: "Mike Rodriguez",
-    role: "Head of Sales",
-    company: "SalesForce Startup",
-  },
-  {
-    quote:
-      "The resume database paid for itself in the first month. We found 3 perfect hires.",
-    name: "Jennifer Walsh",
-    role: "VP of People",
-    company: "TechScale Inc",
-  },
 ];
 
 export default function PricingPage() {
@@ -339,44 +334,6 @@ export default function PricingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="border-b border-neutral-800 py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-black uppercase tracking-tight text-white text-center mb-12">
-            What Employers Say
-          </h2>
-
-          <div className="grid gap-8 md:grid-cols-2">
-            {testimonials.map((t, i) => (
-              <div key={i} className="border border-neutral-800 p-8">
-                <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, j) => (
-                    <Star
-                      key={j}
-                      className="h-4 w-4 fill-amber-500 text-amber-500"
-                    />
-                  ))}
-                </div>
-                <blockquote className="text-lg text-neutral-300 italic">
-                  &ldquo;{t.quote}&rdquo;
-                </blockquote>
-                <div className="mt-6 flex items-center gap-4">
-                  <div className="flex h-12 w-12 items-center justify-center bg-neutral-800 text-lg font-bold text-white">
-                    {t.name.charAt(0)}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-white">{t.name}</p>
-                    <p className="text-sm text-neutral-500">
-                      {t.role}, {t.company}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* FAQ */}
       <section className="border-b border-neutral-800 py-24 bg-neutral-950">
         <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
@@ -437,12 +394,12 @@ export default function PricingPage() {
               Get Started
               <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
-            <Link
-              href="/contact"
+            <a
+              href="mailto:hello@hardcorejobs.com"
               className="btn btn-secondary w-full px-8 py-4 text-base sm:w-auto"
             >
               Contact Sales
-            </Link>
+            </a>
           </div>
         </div>
       </section>

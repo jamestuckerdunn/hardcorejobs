@@ -24,6 +24,8 @@ export interface Job {
   company_size?: string;
   industry?: string;
   verified?: boolean;
+  experience_required?: string | null;
+  degree_required?: string | null;
 }
 
 export interface JobsResponse {

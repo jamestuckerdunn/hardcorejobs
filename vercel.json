@@ -1,0 +1,10 @@
+{
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "crons": [
+    {
+      "path": "/api/aggregators/jooble/sync",
+      "schedule": "0 */6 * * *"
+    }
+  ]
+}

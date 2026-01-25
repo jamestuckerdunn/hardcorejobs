@@ -13,7 +13,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
   useEffect(() => {
     // Log error to monitoring service in production
     if (process.env.NODE_ENV === "production") {
-      // TODO: Send to error monitoring service
+      // Error monitoring can be added here later (e.g., Sentry)
     }
   }, [error]);
 

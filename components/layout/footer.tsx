@@ -19,7 +19,7 @@ const footerLinks = {
   employers: [
     { href: "/sign-up?role=employer", label: "Post a Job" },
     { href: "/pricing", label: "Resume Database" },
-    { href: "/contact", label: "Contact Sales" },
+    { href: "mailto:hello@hardcorejobs.com", label: "Contact Sales" },
   ],
   resources: [
     { href: "/blog", label: "Blog" },
@@ -74,12 +74,17 @@ export function Footer() {
               </div>
             ) : (
               <form onSubmit={handleSubscribe} className="flex gap-2">
+                <label htmlFor="newsletter-email" className="sr-only">
+                  Email address
+                </label>
                 <input
+                  id="newsletter-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email"
                   required
+                  aria-label="Email address for job alerts"
                   className="flex-1 px-4 py-3 text-sm bg-black border border-neutral-800 text-white placeholder:text-neutral-600 focus:border-white focus:outline-none"
                 />
                 <button
