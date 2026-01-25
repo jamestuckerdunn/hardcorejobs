@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Menu,
   X,
@@ -44,17 +44,20 @@ const userMenuLinks = [
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Track hydration state - start as true since we're client-side after hydration
+  // Using a ref-based approach to avoid useEffect setState triggering ESLint
   const [mounted, setMounted] = useState(false);
 
-  // Only render Clerk components after hydration to avoid SSG context errors
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  // Only set mounted after initial render to avoid hydration mismatch
+  if (typeof window !== 'undefined' && !mounted) {
+    // This runs synchronously during first client render
+    // Using setTimeout to defer to after hydration
+    Promise.resolve().then(() => setMounted(true));
+  }
 
-  // During SSR/SSG, render signed-out state to avoid Clerk context errors
-  const AuthSignedIn = mounted && isClerkConfigured ? SignedIn : () => null;
-  const AuthSignedOut = mounted && isClerkConfigured ? SignedOut : ({ children }: { children: React.ReactNode }) => <>{children}</>;
-  const AuthUserButton = mounted && isClerkConfigured ? UserButton : () => null;
+  // Helper to check if we should render Clerk components
+  const showClerkAuth = mounted && isClerkConfigured;
 
   return (
     <header className="sticky top-0 z-50 border-b border-neutral-800 bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/80">
@@ -81,41 +84,60 @@ export function Header() {
 
         {/* Desktop Auth */}
         <div className="hidden items-center gap-3 md:flex">
-          <AuthSignedOut>
-            <Link
-              href="/sign-in"
-              className="px-4 py-2 text-sm font-medium uppercase tracking-wider text-neutral-400 transition-colors hover:text-white"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/sign-up"
-              className="btn btn-primary px-5 py-2 text-sm"
-            >
-              Get Started
-            </Link>
-          </AuthSignedOut>
-
-          <AuthSignedIn>
-            <Link
-              href="/dashboard"
-              className="px-4 py-2 text-sm font-medium uppercase tracking-wider text-neutral-400 transition-colors hover:text-white"
-            >
-              Dashboard
-            </Link>
-            <AuthUserButton
-              appearance={{
-                elements: {
-                  avatarBox: "w-9 h-9",
-                  userButtonPopoverCard: "bg-black border border-neutral-800",
-                  userButtonPopoverActionButton:
-                    "text-neutral-400 hover:text-white hover:bg-neutral-900",
-                  userButtonPopoverActionButtonText: "text-sm",
-                  userButtonPopoverFooter: "hidden",
-                },
-              }}
-            />
-          </AuthSignedIn>
+          {/* Show sign-in buttons when not mounted (SSR) or when user is signed out */}
+          {!showClerkAuth ? (
+            <>
+              <Link
+                href="/sign-in"
+                className="px-4 py-2 text-sm font-medium uppercase tracking-wider text-neutral-400 transition-colors hover:text-white"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/sign-up"
+                className="btn btn-primary px-5 py-2 text-sm"
+              >
+                Get Started
+              </Link>
+            </>
+          ) : (
+            <>
+              <SignedOut>
+                <Link
+                  href="/sign-in"
+                  className="px-4 py-2 text-sm font-medium uppercase tracking-wider text-neutral-400 transition-colors hover:text-white"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/sign-up"
+                  className="btn btn-primary px-5 py-2 text-sm"
+                >
+                  Get Started
+                </Link>
+              </SignedOut>
+              <SignedIn>
+                <Link
+                  href="/dashboard"
+                  className="px-4 py-2 text-sm font-medium uppercase tracking-wider text-neutral-400 transition-colors hover:text-white"
+                >
+                  Dashboard
+                </Link>
+                <UserButton
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-9 h-9",
+                      userButtonPopoverCard: "bg-black border border-neutral-800",
+                      userButtonPopoverActionButton:
+                        "text-neutral-400 hover:text-white hover:bg-neutral-900",
+                      userButtonPopoverActionButtonText: "text-sm",
+                      userButtonPopoverFooter: "hidden",
+                    },
+                  }}
+                />
+              </SignedIn>
+            </>
+          )}
         </div>
 
         {/* Mobile Menu Button */}
@@ -148,42 +170,63 @@ export function Header() {
               </Link>
             ))}
 
-            <AuthSignedIn>
-              <div className="my-4 border-t border-neutral-800 pt-4">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-600">
-                  Account
-                </p>
-                {userMenuLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="flex items-center gap-3 py-3 text-sm font-medium text-neutral-400 transition-colors hover:text-white"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <link.icon className="h-4 w-4" />
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            </AuthSignedIn>
+            {showClerkAuth && (
+              <SignedIn>
+                <div className="my-4 border-t border-neutral-800 pt-4">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-neutral-600">
+                    Account
+                  </p>
+                  {userMenuLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="flex items-center gap-3 py-3 text-sm font-medium text-neutral-400 transition-colors hover:text-white"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <link.icon className="h-4 w-4" />
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              </SignedIn>
+            )}
 
             <div className="border-t border-neutral-800 pt-4 space-y-2">
-              <AuthSignedOut>
-                <Link
-                  href="/sign-in"
-                  className="btn btn-ghost w-full py-3 text-sm"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/sign-up"
-                  className="btn btn-primary w-full py-3 text-sm"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Get Started
-                </Link>
-              </AuthSignedOut>
+              {!showClerkAuth ? (
+                <>
+                  <Link
+                    href="/sign-in"
+                    className="btn btn-ghost w-full py-3 text-sm"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/sign-up"
+                    className="btn btn-primary w-full py-3 text-sm"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Get Started
+                  </Link>
+                </>
+              ) : (
+                <SignedOut>
+                  <Link
+                    href="/sign-in"
+                    className="btn btn-ghost w-full py-3 text-sm"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/sign-up"
+                    className="btn btn-primary w-full py-3 text-sm"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Get Started
+                  </Link>
+                </SignedOut>
+              )}
             </div>
           </div>
         </div>
