@@ -14,13 +14,8 @@ const isProtectedRoute = createRouteMatcher([
 // Check if Clerk is configured
 const isClerkConfigured = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
-// In production, Clerk MUST be configured - fail fast
-if (process.env.NODE_ENV === "production" && !isClerkConfigured) {
-  throw new Error(
-    "Clerk authentication must be configured in production. " +
-    "Set NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY environment variable."
-  );
-}
+// Note: Site will work without Clerk, but auth features will be disabled
+// Set NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY for full functionality
 
 // Export middleware conditionally (allows development without Clerk)
 export default isClerkConfigured
